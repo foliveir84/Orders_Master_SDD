@@ -209,7 +209,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-06 — Labs loader com `mtime` + validação schema
+### TASK-06 — [x] Labs loader com `mtime` + validação schema
 **Objectivo:** Implementar `load_labs(mtime)` com validação pydantic e invalidação de cache por timestamp.
 **Referência PRD:** → PRD §4.3.3, §8.15, §8.16; ADR-006
 **Bloqueado por:** TASK-03, TASK-05
@@ -223,12 +223,12 @@ class FileError(NamedTuple):
 - Avisos para duplicados (não erro).
 - `ConfigError` para JSON inválido, schema violado, chaves inválidas.
 **Critérios de Aceitação:**
-- [ ] Teste `test_labs_loader.py`:
-  - [ ] `load_labs` com JSON válido devolve `LabsConfig` correcto.
-  - [ ] JSON malformado → `ConfigError`.
-  - [ ] Duplicados em lista CLA → warning log + dedup automático.
-  - [ ] `mtime` diferente → cache miss → recarrega.
-- [ ] Validador CLI: `exit 0` se válido, `exit 1` se erro + mensagem clara.
+- [x] Teste `test_labs_loader.py`:
+  - [x] `load_labs` com JSON válido devolve `LabsConfig` correcto.
+  - [x] JSON malformado → `ConfigError`.
+  - [x] Duplicados em lista CLA → warning log + dedup automático.
+  - [x] `mtime` diferente → cache miss → recarrega.
+- [x] Validador CLI: `exit 0` se válido, `exit 1` se erro + mensagem clara.
 **Notas de Implementação:**
 - Schema: `LabsConfig(RootModel[dict[str, list[str]]])` com `model_validator` a verificar:
   - Chaves: regex `^[A-Z][\w_]+$`, min length 2.
