@@ -341,7 +341,7 @@ class FileError(NamedTuple):
   - [x] Ficheiro vazio → lista vazia.
 **Notas de Implementação:**
 - `stripped.isdigit()` como critério — apenas linhas 100% dígitos.
-- Dedup downstream via `isin()` — não precisa deduplicar aqui.
+- Dedup downstream via `isin()` — não precisa deduplicar aqui..
 - `file_like.read().decode("utf-8", errors="replace")`.
 **Estimativa:** XS
 
