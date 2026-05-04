@@ -177,7 +177,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-05 — Constantes e schemas tipados
+### TASK-05 — [x] Constantes e schemas tipados
 **Objectivo:** Definir todas as constantes do domínio em `constants.py` e schemas pydantic em `schemas.py`.
 **Referência PRD:** → PRD §4.1, §4.3.5, §8.2
 **Bloqueado por:** TASK-02
@@ -197,12 +197,12 @@ class FileError(NamedTuple):
   - `DoNotBuyRecordSchema`.
   - `BrandRecordSchema`.
 **Critérios de Aceitação:**
-- [ ] Todas as colunas mencionadas em §4.1 estão em `Columns`.
-- [ ] `Weights.PADRAO == (0.4, 0.3, 0.2, 0.1)` e `sum(Weights.PADRAO) == 1.0`.
-- [ ] Teste `test_schemas.py` valida um DataFrame conforme e rejeita um não-conforme para cada schema.
-- [ ] `GroupLabels.GROUP_ROW.value == 'Grupo'` (NÃO `'Zgrupo_Total'`).
+- [x] Todas as colunas mencionadas em §4.1 estão em `Columns`.
+- [x] `Weights.PADRAO == (0.4, 0.3, 0.2, 0.1)` e `sum(Weights.PADRAO) == 1.0`.
+- [x] Teste `test_schemas.py` valida um DataFrame conforme e rejeita um não-conforme para cada schema.
+- [x] `GroupLabels.GROUP_ROW.value == 'Grupo'` (NÃO `'Zgrupo_Total'`.
 **Notas de Implementação:**
-- Usar `pandera` ou pydantic com custom `@validator`. **Decisão recomendada:** pydantic com `model_validator` custom que aceita `pd.DataFrame` e verifica colunas + dtypes.
+- Usar `pandera` ou pydantic com custom `@validator`. **Decisão recomendada:** pydantic with `model_validator` custom que aceita `pd.DataFrame` e verifica colunas + dtypes.
 - Schemas devem ser **lenient por omissão** (colunas extra permitidas) mas estritos em colunas obrigatórias.
 - `Columns` usa `StrEnum` (Python 3.11+) para que `str(Columns.CODIGO) == 'CÓDIGO'` em contexto string.
 **Estimativa:** M
