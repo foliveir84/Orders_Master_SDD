@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
-from orders_master.config.labs_loader import load_labs, get_file_mtime
-from orders_master.exceptions import ConfigError
+from orders_master.config.labs_loader import load_labs, get_file_mtime as get_labs_mtime
+from orders_master.config.locations_loader import load_locations, get_file_mtime as get_locs_mtime
 
 
 def validate_config(file_path: str) -> None:
@@ -18,18 +18,13 @@ def validate_config(file_path: str) -> None:
 
     try:
         if path.name == "laboratorios.json":
-            # Using get_file_mtime for the mtime argument
-            # st.cache_data usually works fine outside streamlit by simply executing the function.
-            load_labs(get_file_mtime(path), path)
+            load_labs(get_labs_mtime(path), path)
             print(f"✓ Ficheiro {file_path} é válido.")
         elif path.name == "localizacoes.json":
-            # Placeholder for TASK-07
-            print(f"! Aviso: Validador para {path.name} ainda não implementado (será feito na TASK-07).")
-            # For now, let's just exit 0 to not break CI if it's just a placeholder
-            sys.exit(0)
+            load_locations(get_locs_mtime(path), path)
+            print(f"✓ Ficheiro {file_path} é válido.")
         else:
             print(f"! Aviso: Nenhum validador específico para {file_path}.")
-            sys.exit(0)
 
         sys.exit(0)
     except ConfigError as e:

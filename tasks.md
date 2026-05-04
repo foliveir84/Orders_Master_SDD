@@ -240,7 +240,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-07 — Locations loader com `mtime` + word-boundary matching
+### TASK-07 — [x] Locations loader com `mtime` + word-boundary matching
 **Objectivo:** Implementar `load_locations(mtime)` + `map_location(name, aliases)` com word-boundary.
 **Referência PRD:** → PRD §4.3.3, §5.1.9, §8.16, §8.19; ADR-012
 **Bloqueado por:** TASK-03, TASK-05
@@ -254,12 +254,12 @@ class FileError(NamedTuple):
     2. Word boundary (`re.search(r'\b' + term + r'\b', name_lower)`).
     3. Fallback: `name.title()`.
 **Critérios de Aceitação:**
-- [ ] Teste `test_locations_loader.py`:
-  - [ ] Schema: termos com < 3 chars rejeitados.
-  - [ ] `map_location("Farmácia da Ilha", {"ilha": "Ilha"})` → `"Ilha"`.
-  - [ ] `map_location("Farmácia Vilha", {"ilha": "Ilha"})` → `"Farmácia Vilha"` (sem match).
-  - [ ] Multi-match: log WARNING + primeiro vence.
-  - [ ] `mtime` invalidation funciona.
+- [x] Teste `test_locations_loader.py`:
+  - [x] Schema: termos com < 3 chars rejeitados.
+  - [x] `map_location("Farmácia da Ilha", {"ilha": "Ilha"})` → `"Ilha"`.
+  - [x] `map_location("Farmácia Vilha", {"ilha": "Ilha"})` → `"Farmácia Vilha"` (sem match).
+  - [x] Multi-match: log WARNING + primeiro vence.
+  - [x] `mtime` invalidation funciona.
 **Notas de Implementação:**
 - `re.escape(term)` essencial para evitar regex injection caso um termo contenha chars especiais.
 - Comparação lowercase consistente em ambos os lados.
