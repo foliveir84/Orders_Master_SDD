@@ -62,10 +62,10 @@ Cada tarefa segue o template:
 - `.gitignore` cobrindo `.env`, `.streamlit/secrets.toml`, `venv/`, `__pycache__/`, `.pytest_cache/`, `logs/`, `*.pyc`.
 - `README.md` stub com secção Setup (5 passos).
 **Critérios de Aceitação:**
-- [ ] `pip install -r requirements.txt -r requirements-dev.txt` completa sem erros num venv limpo.
-- [ ] `ruff check .` corre sem erros numa base vazia.
-- [ ] `mypy --strict orders_master/` corre (sem módulos ainda, apenas a infraestrutura).
-- [ ] `.gitignore` bloqueia `.env` e `secrets.toml`.
+- [x] `pip install -r requirements.txt -r requirements-dev.txt` completa sem erros num venv limpo.
+- [x] `ruff check .` corre sem erros numa base vazia.
+- [x] `mypy --strict orders_master/` corre (sem módulos ainda, apenas a infraestrutura).
+- [x] `.gitignore` bloqueia `.env` e `secrets.toml`.
 **Notas de Implementação:**
 - `pyproject.toml::[tool.ruff]` deve incluir regra `E722` (bare-except) + regra `PL` (pylint).
 - Python target: `3.11` (para `StrEnum` e sintaxe moderna).
