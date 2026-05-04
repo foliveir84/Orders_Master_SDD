@@ -54,7 +54,7 @@ Cada tarefa segue o template:
 **Objectivo:** Criar a raiz do projecto com ferramentas de qualidade configuradas (ruff, black, mypy, pytest, pre-commit).
 **Referência PRD:** → PRD §3.4, §7.3 (NFR-M1, M8, M9)
 **Bloqueado por:** —
-**Input:** Directório vazio.
+**Input:** Directório com agents, docs, prdv2.md, tasks.md, GEMINI.m.
 **Output esperado:**
 - `pyproject.toml` com configuração de `ruff`, `black`, `mypy`, `pytest`.
 - `requirements.txt` com dependências pinadas: `streamlit`, `pandas`, `openpyxl`, `pydantic`, `python-dotenv`, `pyyaml`, `python-dateutil`.
