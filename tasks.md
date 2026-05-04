@@ -106,9 +106,9 @@ tests/fixtures/.gitkeep
 docs/.gitkeep
 ```
 **Critérios de Aceitação:**
-- [ ] `tree orders_master/` (ou `Get-ChildItem -Recurse`) coincide com §3.4.
-- [ ] `python -c "import orders_master"` não falha.
-- [ ] `config/presets.yaml` contém os 3 presets (Conservador, Padrão, Agressivo) conforme §6.3.4.
+- [x] `tree orders_master/` (ou `Get-ChildItem -Recurse`) coincide com §3.4.
+- [x] `python -c "import orders_master"` não falha.
+- [x] `config/presets.yaml` contém os 3 presets (Conservador, Padrão, Agressivo) conforme §6.3.4.
 **Notas de Implementação:**
 - Não criar `.streamlit/secrets.toml` real — apenas `.example`.
 - `config/laboratorios.json` template: `{"Exemplo": ["1234"]}`.
