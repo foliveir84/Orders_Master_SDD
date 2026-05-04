@@ -267,7 +267,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-08 — App services: SessionState tipada + façade
+### TASK-08 — [x] App services: SessionState tipada + façade
 **Objectivo:** Criar dataclass `SessionState` e façade sobre `st.session_state`.
 **Referência PRD:** → PRD §4.1.8, §3.2 (app_services)
 **Bloqueado por:** TASK-05
@@ -280,11 +280,11 @@ class FileError(NamedTuple):
   - Função `get_state() -> SessionState` que faz lazy-init em `st.session_state`.
   - Função `reset_state()` utilitária.
 **Critérios de Aceitação:**
-- [ ] Teste `test_session_state.py`:
-  - [ ] `get_state()` devolve instância válida mesmo na primeira chamada.
-  - [ ] Actualizações persistem entre chamadas (via `st.session_state`).
-  - [ ] `reset_state()` limpa tudo.
-- [ ] Import funciona sem Streamlit instalado (apenas a dataclass — o façade pode falhar sem Streamlit).
+- [x] Teste `test_session_state.py`:
+  - [x] `get_state()` devolve instância válida mesmo na primeira chamada.
+  - [x] Actualizações persistem entre chamadas (via `st.session_state`).
+  - [x] `reset_state()` limpa tudo.
+- [x] Import funciona sem Streamlit instalado (apenas a dataclass — o façade pode falhar sem Streamlit).
 **Notas de Implementação:**
 - `SessionState` é pura dataclass — facilmente usada em testes sem Streamlit.
 - O façade `get_state()` encapsula a coerção entre `st.session_state` (dict) e `SessionState` (typed).
