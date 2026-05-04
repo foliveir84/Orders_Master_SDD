@@ -321,7 +321,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-10 — Codes TXT parser
+### TASK-10 — [x] Codes TXT parser
 **Objectivo:** Implementar parser de ficheiro `.txt` com lista de CNPs (um por linha), devolvendo `list[int]`.
 **Referência PRD:** → PRD §5.2.1, §6.3.2
 **Bloqueado por:** TASK-02
@@ -332,13 +332,13 @@ class FileError(NamedTuple):
   - Descarta cabeçalhos, linhas em branco, linhas não-numéricas (silenciosamente).
   - Decode com `utf-8` + `errors='replace'`.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_codes_txt_parser.py`:
-  - [ ] Ficheiro com 5 CNPs válidos → lista de 5 ints.
-  - [ ] Cabeçalho textual descartado silenciosamente.
-  - [ ] Linhas em branco descartadas.
-  - [ ] Linhas alfanuméricas mistas descartadas.
-  - [ ] UTF-8 com BOM funciona.
-  - [ ] Ficheiro vazio → lista vazia.
+- [x] Teste `tests/unit/test_codes_txt_parser.py`:
+  - [x] Ficheiro com 5 CNPs válidos → lista de 5 ints.
+  - [x] Cabeçalho textual descartado silenciosamente.
+  - [x] Linhas em branco descartadas.
+  - [x] Linhas alfanuméricas mistas descartadas.
+  - [x] UTF-8 com BOM funciona.
+  - [x] Ficheiro vazio → lista vazia.
 **Notas de Implementação:**
 - `stripped.isdigit()` como critério — apenas linhas 100% dígitos.
 - Dedup downstream via `isin()` — não precisa deduplicar aqui.
