@@ -140,9 +140,9 @@ class FileError(NamedTuple):
     message: str
 ```
 **Critérios de Aceitação:**
-- [ ] Todas as classes são importáveis a partir de `orders_master.exceptions`.
-- [ ] `isinstance(InfoprexEncodingError("..."), OrdersMasterError) is True`.
-- [ ] `FileError` é imutável (NamedTuple) e com docstring clara.
+- [x] Todas as classes são importáveis a partir de `orders_master.exceptions`.
+- [x] `isinstance(InfoprexEncodingError("..."), OrdersMasterError) is True`.
+- [x] `FileError` é imutável (NamedTuple) e com docstring clara.
 **Notas de Implementação:**
 - Todas herdam de `OrdersMasterError` para facilitar `try/except OrdersMasterError` genérico quando apropriado.
 - `PriceAnomalyWarning` é `UserWarning` (não Exception) porque é detectável mas não bloqueante — emitida com `warnings.warn()`.
