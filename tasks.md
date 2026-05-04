@@ -150,7 +150,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-04 — Logger estruturado + secrets loader
+### TASK-04 — [x] Logger estruturado + secrets loader
 **Objectivo:** Configurar logging central conforme §7.4 e helper de secrets conforme §8.14.
 **Referência PRD:** → PRD §7.4 (NFR-L1 a L8), §8.14, §8.17
 **Bloqueado por:** TASK-02, TASK-03
@@ -160,14 +160,14 @@ class FileError(NamedTuple):
 - `orders_master/secrets_loader.py` com `get_secret(key_path, env_var) -> str | None` (hierarquia `st.secrets → env → .env`).
 - Invocação de `configure_logging(Path("logs"))` no ponto de entrada `app.py` (ainda stub).
 **Critérios de Aceitação:**
-- [ ] Test `tests/unit/test_logger.py` confirma:
-  - [ ] Records têm atributo `session_id` não-vazio.
-  - [ ] Handler rotativo criado com rotação diária.
-  - [ ] `logger.getLogger("orders_master.foo")` herda configuração.
-- [ ] Test `test_secrets_loader.py`:
-  - [ ] Hierarquia respeita ordem (mock `st.secrets` → mock env → `.env`).
-  - [ ] Retorna `None` se nenhum hit.
-- [ ] Nenhum `print()` em `orders_master/` (grep CI).
+- [x] Test `tests/unit/test_logger.py` confirma:
+  - [x] Records têm atributo `session_id` não-vazio.
+  - [x] Handler rotativo criado com rotação diária.
+  - [x] `logger.getLogger("orders_master.foo")` herda configuração.
+- [x] Test `test_secrets_loader.py`:
+  - [x] Hierarquia respeita ordem (mock `st.secrets` → mock env → `.env`).
+  - [x] Retorna `None` se nenhum hit.
+- [x] Nenhum `print()` em `orders_master/` (grep CI).
 **Notas de Implementação:**
 - Usar `TimedRotatingFileHandler` com `when="D", interval=1, backupCount=7`.
 - `SessionFilter` injecta `session_id` em cada record via `record.session_id = SESSION_ID`.
