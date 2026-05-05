@@ -516,14 +516,14 @@ class FileError(NamedTuple):
   - Adiciona coluna `price_anomaly: bool`.
   - Regras: `P.CUSTO ≤ 0` | `PVP ≤ 0` | `PVP < P.CUSTO`.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_price_validation.py`:
-  - [ ] `P.CUSTO = 0` → `price_anomaly = True`.
-  - [ ] `P.CUSTO = -5` → `True`.
-  - [ ] `PVP = 0` → `True`.
-  - [ ] `PVP = -1` → `True`.
-  - [ ] `PVP = 3, P.CUSTO = 5` (margem negativa) → `True`.
-  - [ ] `PVP = 10, P.CUSTO = 5` (válido) → `False`.
-  - [ ] DataFrame original não é mutado (retorna cópia).
+- [x] Teste `tests/unit/test_price_validation.py`:
+  - [x] `P.CUSTO = 0` → `price_anomaly = True`.
+  - [x] `P.CUSTO = -5` → `True`.
+  - [x] `PVP = 0` → `True`.
+  - [x] `PVP = -1` → `True`.
+  - [x] `PVP = 3, P.CUSTO = 5` (margem negativa) → `True`.
+  - [x] `PVP = 10, P.CUSTO = 5` (válido) → `False`.
+  - [x] DataFrame original não é mutado (retorna cópia).
 **Notas de Implementação:**
 - `df = df.copy()` obrigatório.
 - Coluna `price_anomaly` nunca entra em cálculos numéricos.

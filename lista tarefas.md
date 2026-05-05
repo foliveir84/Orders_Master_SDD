@@ -100,7 +100,7 @@ Após concluir cada sub tarefa, marque um "X" na subtarefa em @tasks.md.
 Marque um "X" ao concluir Fases também.
 ```
 
-### TASK-18 (Fase 3)
+### [x] TASK-18 (Fase 3)
 ```text
 Execute a task 18 da lista da Fase 3, que existe no ficheiro @tasks.md. Todas as tarefas estão relacionadas com a documentação do ficheiro @prdv2.md.
 Usa os agentes necessários que estão referenciados em @agents/README.md para a execução de cada task.
