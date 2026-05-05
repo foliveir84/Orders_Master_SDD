@@ -38,7 +38,7 @@ Cada tarefa segue o template:
 
 | Fase | Nome | TASKs | Objectivo |
 |---|---|---|---|
-| 1 | Setup e Fundações | TASK-01 a TASK-08 | Estrutura do projecto, constantes, schemas, logging, secrets, config loaders. |
+| 1 | [x] Setup e Fundações | TASK-01 a TASK-08 | Estrutura do projecto, constantes, schemas, logging, secrets, config loaders. |
 | 2 | Ingestão e Validação | TASK-09 a TASK-13 | Parsers Infoprex + códigos TXT + marcas + encoding fallback + parallel parsing. |
 | 3 | Agregação e Lógica de Negócio | TASK-14 a TASK-22 | Motor de agregação único, limpeza vectorizada, médias, propostas, validação de preços. |
 | 4 | Integrações Externas | TASK-15, TASK-16 (em fase 3 pela dependência), TASK-23 a TASK-24 | Google Sheets (Esgotados + Não Comprar), cache strategy, app services. |
