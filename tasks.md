@@ -295,7 +295,7 @@ class FileError(NamedTuple):
 
 ## FASE 2 — Ingestão e Validação
 
-### TASK-09 — Encoding fallback helper
+### TASK-09 — [x] Encoding fallback helper
 **Objectivo:** Implementar helper que tenta abrir um ficheiro com sequência de encodings (`utf-16 → utf-8 → latin1`), devolvendo o DataFrame ou levantando `InfoprexEncodingError`.
 **Referência PRD:** → PRD §5.1.2, §6.3.1
 **Bloqueado por:** TASK-03
@@ -306,12 +306,12 @@ class FileError(NamedTuple):
   - Sequência estrita: `utf-16` → `utf-8` → `latin1`.
   - Se todos falharem → `raise InfoprexEncodingError(f"Codificação não suportada: {filename}")`.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_encoding_fallback.py`:
-  - [ ] Ficheiro UTF-16 válido → lido correctamente.
-  - [ ] Ficheiro UTF-8 válido (sem BOM UTF-16) → lido correctamente.
-  - [ ] Ficheiro Latin-1 válido → lido correctamente.
-  - [ ] Ficheiro com encoding desconhecido (ex: binário aleatório) → `InfoprexEncodingError`.
-  - [ ] `usecols` é respeitado (colunas não listadas não aparecem no DataFrame).
+- [x] Teste `tests/unit/test_encoding_fallback.py`:
+  - [x] Ficheiro UTF-16 válido → lido correctamente.
+  - [x] Ficheiro UTF-8 válido (sem BOM UTF-16) → lido correctamente.
+  - [x] Ficheiro Latin-1 válido → lido correctamente.
+  - [x] Ficheiro com encoding desconhecido (ex: binário aleatório) → `InfoprexEncodingError`.
+  - [x] `usecols` é respeitado (colunas não listadas não aparecem no DataFrame).
 **Notas de Implementação:**
 - Cada tentativa deve fazer `file_like.seek(0)` antes de re-tentar (ficheiro Streamlit `UploadedFile` suporta seek).
 - Usar `pd.read_csv(file_like, sep='\t', encoding=enc, usecols=...)`.
