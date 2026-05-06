@@ -41,7 +41,7 @@ Cada tarefa segue o template:
 | 1 | [x] Setup e Fundações | TASK-01 a TASK-08 | Estrutura do projecto, constantes, schemas, logging, secrets, config loaders. |
 | 2 | [x] Ingestão e Validação | TASK-09 a TASK-13 | Parsers Infoprex + códigos TXT + marcas + encoding fallback + parallel parsing. |
 | 3 | [x] Agregação e Lógica de Negócio | TASK-14 a TASK-22 | Motor de agregação único, limpeza vectorizada, médias, propostas, validação de preços. |
-| 4 | Integrações Externas | TASK-15, TASK-16 (em fase 3 pela dependência), TASK-23 a TASK-24 | Google Sheets (Esgotados + Não Comprar), cache strategy, app services. |
+| 4 | [x] Integrações Externas | TASK-15, TASK-16 (em fase 3 pela dependência), TASK-23 a TASK-24 | Google Sheets (Esgotados + Não Comprar), cache strategy, app services. |
 | 5 | UI Streamlit | TASK-25 a TASK-34 | Sidebar, área principal, Scope Bar, File Inventory, toggles, filtros, progress bar. |
 | 6 | Formatação e Exportação | TASK-40 a TASK-43 | Styler web, openpyxl Excel, SSOT de rules, nome dinâmico, teste de paridade. |
 | 7 | Testes e Validação | TASK-35 a TASK-39, TASK-44 a TASK-50 | Testes unitários, integração, performance, CI/CD, docs, linting. |
@@ -634,7 +634,7 @@ class FileError(NamedTuple):
 
 ---
 
-## FASE 4 — Integrações Externas
+## [x] FASE 4 — Integrações Externas
 
 ### TASK-15 — [x] Shortages integration (com lazy filter)
 **Objectivo:** Implementar `fetch_shortages_db()` que lê a Google Sheet de Esgotados (Infarmed), recalcula `TimeDelta` dinamicamente e suporta lazy filter por códigos visíveis.
@@ -702,7 +702,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-23 — Session service (orquestração ingestão + agregação)
+### [x] TASK-23 — Session service (orquestração ingestão + agregação)
 **Objectivo:** Implementar `process_orders_session()` que orquestra o pipeline pesado: parse → concat → aggregate (agrupada + detalhada) → popular `SessionState`.
 **Referência PRD:** → PRD §3.2 (session_service), §3.3 P4; ADR-005
 **Bloqueado por:** TASK-08, TASK-11, TASK-13, TASK-14, TASK-17
@@ -735,7 +735,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-24 — Recalc service (orquestração recálculo em memória)
+### [x] TASK-24 — Recalc service (orquestração recálculo em memória)
 **Objectivo:** Implementar `recalculate_proposal()` que opera sobre DataFrames em `SessionState` sem reprocessar ficheiros.
 **Referência PRD:** → PRD §3.2 (recalc_service), §3.3 P4; ADR-005
 **Bloqueado por:** TASK-08, TASK-15, TASK-16, TASK-20, TASK-21, TASK-22

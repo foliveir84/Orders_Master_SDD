@@ -16,7 +16,6 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from orders_master.app_services.session_service import load_infoprex_files
 from orders_master.app_services.session_state import get_state, reset_state
 from orders_master.config.labs_loader import get_file_mtime as get_labs_mtime
 from orders_master.config.labs_loader import load_labs
@@ -63,35 +62,49 @@ def main() -> None:
         reset_state()
         state = get_state()
 
-        # Determinar filtros
-        lista_cla = selection.labs_selected
-        lista_codigos: list[int] = []
-        if selection.codes_file is not None:
-            lines = selection.codes_file.read().decode("utf-8", errors="ignore").splitlines()
-            lista_codigos = [int(ln.strip()) for ln in lines if ln.strip().isdigit()]
-            lista_cla = []  # Códigos têm prioridade sobre labs
+        # Orquestrar processamento via session_service (TASK-23)
+        from orders_master.app_services.session_service import process_orders_session
 
-        # Processar ficheiros Infoprex
-        if selection.infoprex_files:
-            progress_bar = st.progress(0, text="A iniciar processamento...")
+        progress_bar = st.progress(0, text="A iniciar processamento...")
 
-            def update_progress(fraction: float, text: str) -> None:
-                progress_bar.progress(fraction, text=text)
+        def update_progress(fraction: float, text: str) -> None:
+            progress_bar.progress(fraction, text=text)
 
-            dfs = load_infoprex_files(
-                files=selection.infoprex_files,
-                state=state,
-                lista_cla=lista_cla,
-                lista_codigos=lista_codigos,
-                locations_aliases=locations_aliases,
-                progress_callback=update_progress,
+        process_orders_session(
+            files=selection.infoprex_files,
+            codes_file=selection.codes_file,
+            brands_files=[],  # Expandir no futuro se houver upload de marcas
+            labs_selected=selection.labs_selected,
+            locations_aliases=locations_aliases,
+            state=state,
+            progress_callback=update_progress,
+        )
+        progress_bar.empty()
+
+        # Cálculo inicial de propostas (TASK-24)
+        if not state.df_raw.empty:
+            from orders_master.app_services.recalc_service import recalculate_proposal
+            from orders_master.business_logic.averages import load_presets
+
+            presets = load_presets("config/presets.yaml")
+            weights = presets.get("Padrão", (0.4, 0.3, 0.2, 0.1))
+
+            state.df_detailed = recalculate_proposal(
+                df_detailed=state.df_raw,
+                detailed_view=True,
+                master_products=state.master_products,
+                months=1.0,
+                weights=weights,
             )
-            progress_bar.empty()
-            if dfs:
-                state.df_detailed = pd.concat(dfs, ignore_index=True)
-                state.df_aggregated = state.df_detailed.copy()
-        else:
-            st.warning("Nenhum ficheiro Infoprex carregado.")
+            state.df_aggregated = recalculate_proposal(
+                df_detailed=state.df_raw,
+                detailed_view=False,
+                master_products=state.master_products,
+                months=1.0,
+                weights=weights,
+            )
+        elif not state.file_errors:
+            st.warning("Nenhum ficheiro Infoprex carregado ou processado.")
 
     # ------------------------------------------------------------------
     # Área principal — renderização dos resultados

@@ -39,9 +39,10 @@ class SessionState:
     Esta é uma dataclass pura que pode ser usada fora do Streamlit.
     """
 
+    df_raw: pd.DataFrame = field(default_factory=pd.DataFrame)
     df_aggregated: pd.DataFrame = field(default_factory=pd.DataFrame)
     df_detailed: pd.DataFrame = field(default_factory=pd.DataFrame)
-    df_master_products: pd.DataFrame = field(default_factory=pd.DataFrame)
+    master_products: pd.DataFrame = field(default_factory=pd.DataFrame)
     last_labs_selection: list[str] | None = None
     last_codes_file_name: str | None = None
     file_errors: list[FileError] = field(default_factory=list)

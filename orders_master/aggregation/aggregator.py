@@ -161,6 +161,8 @@ def aggregate(
         Columns.T_UNI,
         Columns.PRICE_ANOMALY,
         Columns.MARCA,
+        Columns.MEDIA,
+        Columns.PROPOSTA,
     }
     sales_cols = [c for c in df_work.columns if c not in known_non_sales]
 
@@ -186,7 +188,7 @@ def aggregate(
     # ------------------------------------------------------------------
     group_keys = [Columns.CODIGO, Columns.LOCALIZACAO] if detailed else [Columns.CODIGO]
 
-    agg_cols = [Columns.STOCK, Columns.T_UNI] + sales_cols
+    agg_cols = [Columns.STOCK, Columns.T_UNI, Columns.MEDIA, Columns.PROPOSTA] + sales_cols
     agg_cols_present = [c for c in agg_cols if c in df_work.columns]
 
     # Para detalhado, preservar DUC e DTVAL na linha de detalhe (first)
