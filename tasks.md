@@ -1274,7 +1274,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-45 — GitHub Actions CI
+### [x] TASK-45 — GitHub Actions CI
 **Objectivo:** Configurar pipeline CI no GitHub Actions conforme §8.13.
 **Referência PRD:** → PRD §8.13
 **Bloqueado por:** TASK-44
@@ -1285,10 +1285,10 @@ class FileError(NamedTuple):
   - Python 3.11.
   - Steps: `pip install`, `ruff check`, `mypy --strict orders_master/`, `pytest --cov=orders_master --cov-fail-under=80`.
 **Critérios de Aceitação:**
-- [ ] CI corre em cada push e PR.
-- [ ] Falha se cobertura < 80%.
-- [ ] Falha se ruff ou mypy reportam erros.
-- [ ] Não corre benchmarks pesados (apenas unit + integration rápidos).
+- [x] CI corre em cada push e PR.
+- [x] Falha se cobertura < 80%.
+- [x] Falha se ruff ou mypy reportam erros.
+- [x] Não corre benchmarks pesados (apenas unit + integration rápidos).
 **Notas de Implementação:**
 - Separar jobs se necessário (lint, type-check, test).
 - Usar cache de pip para performance.
