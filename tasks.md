@@ -669,7 +669,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-16 — DoNotBuy integration (merge dual-mode)
+### TASK-16 — [x] DoNotBuy integration (merge dual-mode)
 **Objectivo:** Implementar `fetch_donotbuy_list()` com merge em dois modos (agrupada vs detalhada) e dedup por data mais recente.
 **Referência PRD:** → PRD §6.2.2, §4.1.5, §4.3.4; ADR-015
 **Bloqueado por:** TASK-04, TASK-05, TASK-07
@@ -686,12 +686,12 @@ class FileError(NamedTuple):
   - Pós-merge: `DATA_OBS = DATA.dt.strftime('%d-%m-%Y')`, drop `CNP`, `FARMACIA`, `DATA`.
   - Se falha → DataFrame vazio + log warning.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_donotbuy_integration.py`:
-  - [ ] Merge agrupada: dedup por CNP, `DATA_OBS` preenchida.
-  - [ ] Merge detalhada: merge por `(CÓDIGO, LOCALIZACAO)`, `DATA_OBS` preenchida.
-  - [ ] Dedup: duplicado `(CNP, FARMACIA)` com datas diferentes → mantém mais recente.
-  - [ ] `FARMACIA` alinhada com aliases de `localizacoes.json`.
-  - [ ] Sheet indisponível → DataFrame vazio.
+- [x] Teste `tests/unit/test_donotbuy_integration.py`:
+  - [x] Merge agrupada: dedup por CNP, `DATA_OBS` preenchida.
+  - [x] Merge detalhada: merge por `(CÓDIGO, LOCALIZACAO)`, `DATA_OBS` preenchida.
+  - [x] Dedup: duplicado `(CNP, FARMACIA)` com datas diferentes → mantém mais recente.
+  - [x] `FARMACIA` alinhada com aliases de `localizacoes.json`.
+  - [x] Sheet indisponível → DataFrame vazio.
 **Notas de Implementação:**
 - `pd.read_excel(url, dtype={'CNP': str})`.
 - `df['DATA'] = pd.to_datetime(df['DATA'], format='%d-%m-%Y', errors='coerce')`.
