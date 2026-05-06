@@ -7,6 +7,7 @@ Pandas Styler para renderização web, seguindo PRD §6.1.6.
 Precedência: a regra com menor ``precedence`` tem maior prioridade.
 Para a linha Grupo (precedência 1) as regras 2-5 não são aplicadas.
 """
+
 import pandas as pd
 
 from orders_master.constants import Columns, GroupLabels
@@ -45,7 +46,9 @@ def build_styler(df: pd.DataFrame) -> "pd.io.formats.style.Styler":
         if not target_cols:
             continue
 
-        def _apply_rule(row: pd.Series, _rule: HighlightRule = rule, _targets: list[str] = target_cols) -> list[str]:
+        def _apply_rule(
+            row: pd.Series, _rule: HighlightRule = rule, _targets: list[str] = target_cols
+        ) -> list[str]:
             # Linha Grupo → só aplica regra 1 (Grupo); ignora 2-5
             is_grupo = row.get(Columns.LOCALIZACAO) == GroupLabels.GROUP_ROW
             if is_grupo and _rule.precedence > 1:
@@ -55,7 +58,7 @@ def build_styler(df: pd.DataFrame) -> "pd.io.formats.style.Styler":
                 return _css_for_row(row, _rule, _targets)
             return [""] * len(row)
 
-        styler = styler.apply(_apply_rule, axis=1)  # type: ignore[arg-type]
+        styler = styler.apply(_apply_rule, axis=1)
 
     # Regra especial: Preço Anómalo → prefixo ⚠️ na célula de PVP
     price_rule = next((r for r in RULES if r.name == "Preço Anómalo"), None)
@@ -65,21 +68,16 @@ def build_styler(df: pd.DataFrame) -> "pd.io.formats.style.Styler":
             if Columns.PVP_MEDIO in df.columns
             else (Columns.PVP if Columns.PVP in df.columns else None)
         )
+        # Formatação base
+        styler = styler.format(na_rep="", precision=2)
+
         if pvp_col is not None and Columns.PRICE_ANOMALY in df.columns:
-
-            def _fmt_anomaly(val: object, row_idx: int, _col: str = pvp_col) -> str:
-                row = df.iloc[row_idx]
-                if bool(row.get(Columns.PRICE_ANOMALY, False)):
-                    return f"⚠️ {val}"
-                return str(val) if val is not None else ""
-
-            # Use Styler.format with a positional formatter per cell
-            styler = styler.format(
-                {pvp_col: lambda v, r=df: (
-                    f"⚠️ {v}" if r.loc[r[Columns.PVP_MEDIO if Columns.PVP_MEDIO in r.columns else Columns.PVP] == v].iloc[0:1][Columns.PRICE_ANOMALY].any()
-                    else v
-                )},
-                na_rep="",
-            )
+            # Seleccionar apenas as linhas que têm anomalia
+            anomaly_idx = df[df[Columns.PRICE_ANOMALY]].index
+            if not anomaly_idx.empty:
+                styler = styler.format(
+                    formatter="⚠️ {:.2f}",
+                    subset=pd.IndexSlice[anomaly_idx, [pvp_col]],  # type: ignore[arg-type]
+                )
 
     return styler

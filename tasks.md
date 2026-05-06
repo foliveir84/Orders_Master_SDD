@@ -1083,7 +1083,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-42 — Excel Formatter + filename dinâmico
+### [x] TASK-42 — Excel Formatter + filename dinâmico
 **Objectivo:** Implementar `build_excel(df, scope_tag)` que gera ficheiro Excel com formatação idêntica ao web e nome dinâmico.
 **Referência PRD:** → PRD §6.3.5, §8.6
 **Bloqueado por:** TASK-40
@@ -1096,13 +1096,13 @@ class FileError(NamedTuple):
   - `compute_scope_tag(labs, codes_file, codes_count) -> str`.
   - `sanitize_filename(s) -> str` — remove chars especiais.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_excel_formatter.py`:
-  - [ ] Formatação: mesmas 5 regras aplicadas via openpyxl.
-  - [ ] Filename: `Sell_Out_Mylan_20260504_1430.xlsx` para 1 lab.
-  - [ ] Filename: `Sell_Out_Labs-3_...` para múltiplos labs.
-  - [ ] Filename: `Sell_Out_TXT-47_...` para TXT activo.
-  - [ ] Filename: `Sell_Out_GRUPO_...` para sem filtro.
-  - [ ] Output é `bytes` válido (abrível por openpyxl/Excel).
+- [x] Teste `tests/unit/test_excel_formatter.py`:
+  - [x] Formatação: mesmas 5 regras aplicadas via openpyxl.
+  - [x] Filename: `Sell_Out_Mylan_20260504_1430.xlsx` para 1 lab.
+  - [x] Filename: `Sell_Out_Labs-3_...` para múltiplos labs.
+  - [x] Filename: `Sell_Out_TXT-47_...` para TXT activo.
+  - [x] Filename: `Sell_Out_GRUPO_...` para sem filtro.
+  - [x] Output é `bytes` válido (abrível por openpyxl/Excel).
 **Notas de Implementação:**
 - Pipeline: `df.to_excel(output) → load_workbook(output) → apply_excel_rules(ws, df) → wb.save(final)`.
 - `apply_excel_rules` itera as `RULES` e aplica `PatternFill` + `Font` por célula.
