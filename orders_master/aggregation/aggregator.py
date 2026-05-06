@@ -68,34 +68,47 @@ def reorder_columns(df: pd.DataFrame, detailed: bool) -> pd.DataFrame:
     Returns:
         DataFrame com colunas reordenadas.
     """
-    priority_grouped = [
+    # Colunas que vêm obrigatoriamente ANTES dos meses dinâmicos
+    before_months_grouped = [
         Columns.CODIGO,
         Columns.DESIGNACAO,
         Columns.MARCA,
-        Columns.STOCK,
         Columns.PVP_MEDIO,
         Columns.P_CUSTO_MEDIO,
-        Columns.T_UNI,
-        Columns.SORT_KEY,
     ]
-    priority_detailed = [
+    before_months_detailed = [
         Columns.CODIGO,
         Columns.DESIGNACAO,
         Columns.MARCA,
         Columns.LOCALIZACAO,
-        Columns.STOCK,
         Columns.PVP,
         Columns.P_CUSTO,
         Columns.DUC,
         Columns.DTVAL,
+    ]
+
+    # Colunas que vêm obrigatoriamente DEPOIS dos meses dinâmicos
+    after_months = [
         Columns.T_UNI,
+        Columns.STOCK,
+        Columns.MEDIA,
+        Columns.PROPOSTA,
+        Columns.DIR,
+        Columns.DPR,
+        Columns.DATA_OBS,
         Columns.SORT_KEY,
     ]
 
-    priority = priority_detailed if detailed else priority_grouped
-    existing_priority: list[str] = [str(c) for c in priority if c in df.columns]
-    remaining: list[str] = [str(c) for c in df.columns if c not in existing_priority]
-    return df[existing_priority + remaining]
+    before = before_months_detailed if detailed else before_months_grouped
+    existing_before: list[str] = [str(c) for c in before if c in df.columns]
+    existing_after: list[str] = [str(c) for c in after_months if c in df.columns]
+
+    # Meses dinâmicos são os que não estão em 'before' nem em 'after'
+    months: list[str] = [
+        str(c) for c in df.columns if c not in existing_before and c not in existing_after
+    ]
+
+    return df[existing_before + months + existing_after]
 
 
 # ---------------------------------------------------------------------------

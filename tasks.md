@@ -1159,7 +1159,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-36 — Teste invariante âncora T Uni
+### [x] TASK-36 — Teste invariante âncora T Uni
 **Objectivo:** Criar teste que valida o invariante ADR-004: entre `idx_tuni-5` e `idx_tuni-1` só existem colunas numéricas de vendas.
 **Referência PRD:** → PRD §5.4.1, §5.6.5; ADR-004
 **Bloqueado por:** TASK-14, TASK-35
@@ -1170,9 +1170,9 @@ class FileError(NamedTuple):
   - `test_no_metadata_before_tuni` — verifica que `MARCA`, `CLA`, `_sort_key` não estão no bloco.
   - Teste corre com fixture de `df_aggregated` e `df_detailed`.
 **Critérios de Aceitação:**
-- [ ] Teste falha se qualquer coluna não-numérica inserida no bloco `[idx_tuni-5, idx_tuni-1]`.
-- [ ] Teste passa com DataFrame correctamente ordenado.
-- [ ] Cobre ambas as vistas (agrupada e detalhada).
+- [x] Teste falha se qualquer coluna não-numérica inserida no bloco `[idx_tuni-5, idx_tuni-1]`.
+- [x] Teste passa com DataFrame correctamente ordenado.
+- [x] Cobre ambas as vistas (agrupada e detalhada).
 **Notas de Implementação:**
 - `idx_tuni = df.columns.get_loc('T Uni')`.
 - `for i in range(1, 6): assert pd.api.types.is_numeric_dtype(df.iloc[:, idx_tuni - i])`.
