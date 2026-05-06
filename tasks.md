@@ -636,7 +636,7 @@ class FileError(NamedTuple):
 
 ## FASE 4 — Integrações Externas
 
-### TASK-15 — Shortages integration (com lazy filter)
+### TASK-15 — [x] Shortages integration (com lazy filter)
 **Objectivo:** Implementar `fetch_shortages_db()` que lê a Google Sheet de Esgotados (Infarmed), recalcula `TimeDelta` dinamicamente e suporta lazy filter por códigos visíveis.
 **Referência PRD:** → PRD §6.2.1, §8.10, §4.1.4, §4.3.4; ADR-015
 **Bloqueado por:** TASK-04, TASK-05
@@ -651,13 +651,13 @@ class FileError(NamedTuple):
   - Se URL indisponível ou schema inesperado → log warning + devolve DataFrame vazio com schema preservado.
   - `merge_shortages(df_sell_out, df_shortages) -> pd.DataFrame` — left join + renomeação DIR/DPR + drop de colunas auxiliares.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_shortages_integration.py`:
-  - [ ] Merge com mock sheet → colunas `DIR`, `DPR`, `TimeDelta` presentes.
-  - [ ] `TimeDelta` recalculado (não o da sheet).
-  - [ ] Lazy filter: com `codigos_visible={123}` → apenas linhas com CNP 123 retidas.
-  - [ ] Sheet indisponível (mock HTTP error) → DataFrame vazio com colunas correctas.
-  - [ ] Schema inesperado (colunas em falta) → DataFrame vazio + log error.
-  - [ ] Banner data: `Data da Consulta` extraída para display.
+- [x] Teste `tests/unit/test_shortages_integration.py`:
+  - [x] Merge com mock sheet → colunas `DIR`, `DPR`, `TimeDelta` presentes.
+  - [x] `TimeDelta` recalculado (não o da sheet).
+  - [x] Lazy filter: com `codigos_visible={123}` → apenas linhas com CNP 123 retidas.
+  - [x] Sheet indisponível (mock HTTP error) → DataFrame vazio com colunas correctas.
+  - [x] Schema inesperado (colunas em falta) → DataFrame vazio + log error.
+  - [x] Banner data: `Data da Consulta` extraída para display.
 **Notas de Implementação:**
 - `pd.read_excel(url, dtype={'Número de registo': str})`.
 - Colunas obrigatórias: `'Número de registo'`, `'Data de início de rutura'`, `'Data prevista para reposição'`.
