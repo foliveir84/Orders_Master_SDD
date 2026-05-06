@@ -4,6 +4,7 @@ Excel Formatter — TASK-42.
 Implementa a geração de ficheiros Excel com formatação condicional idêntica
 à vista web, utilizando as regras centralizadas em ``rules.py``.
 """
+
 import io
 import re
 from datetime import datetime
@@ -11,7 +12,6 @@ from typing import Any
 
 import pandas as pd
 from openpyxl import load_workbook
-from openpyxl.styles import Font, PatternFill
 
 from orders_master.constants import Columns, GroupLabels
 from orders_master.formatting.rules import RULES
@@ -25,7 +25,7 @@ def sanitize_filename(s: str) -> str:
 def compute_scope_tag(labs: list[str], codes_file: Any, codes_count: int) -> str:
     """
     Determina a tag descritiva do âmbito do processamento para o nome do ficheiro.
-    
+
     Regras:
     1. Se houver ficheiro de códigos: "TXT-{n}"
     2. Se houver 1 laboratório: nome do laboratório
@@ -62,7 +62,7 @@ def apply_excel_rules(ws: Any, df: pd.DataFrame) -> None:
                 for col_name in target_cols:
                     if col_name in col_map:
                         cell = ws.cell(row=row_idx, column=col_map[col_name])
-                        
+
                         if rule.excel_fill:
                             cell.fill = rule.excel_fill
                         if rule.excel_font:
@@ -104,12 +104,12 @@ def build_excel(df: pd.DataFrame, scope_tag: str) -> tuple[bytes, str]:
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
         ws.column_dimensions[column].width = min(max_length + 2, 50)
 
     # 4. Salvar final para bytes
     final_output = io.BytesIO()
     wb.save(final_output)
-    
+
     return final_output.getvalue(), filename

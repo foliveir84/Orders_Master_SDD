@@ -73,13 +73,20 @@ def main() -> None:
 
         # Processar ficheiros Infoprex
         if selection.infoprex_files:
+            progress_bar = st.progress(0, text="A iniciar processamento...")
+
+            def update_progress(fraction: float, text: str) -> None:
+                progress_bar.progress(fraction, text=text)
+
             dfs = load_infoprex_files(
                 files=selection.infoprex_files,
                 state=state,
                 lista_cla=lista_cla,
                 lista_codigos=lista_codigos,
                 locations_aliases=locations_aliases,
+                progress_callback=update_progress,
             )
+            progress_bar.empty()
             if dfs:
                 state.df_detailed = pd.concat(dfs, ignore_index=True)
                 state.df_aggregated = state.df_detailed.copy()

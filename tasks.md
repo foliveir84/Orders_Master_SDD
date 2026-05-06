@@ -39,7 +39,7 @@ Cada tarefa segue o template:
 | Fase | Nome | TASKs | Objectivo |
 |---|---|---|---|
 | 1 | [x] Setup e Fundações | TASK-01 a TASK-08 | Estrutura do projecto, constantes, schemas, logging, secrets, config loaders. |
-| 2 | Ingestão e Validação | TASK-09 a TASK-13 | Parsers Infoprex + códigos TXT + marcas + encoding fallback + parallel parsing. |
+| 2 | [x] Ingestão e Validação | TASK-09 a TASK-13 | Parsers Infoprex + códigos TXT + marcas + encoding fallback + parallel parsing. |
 | 3 | Agregação e Lógica de Negócio | TASK-14 a TASK-22 | Motor de agregação único, limpeza vectorizada, médias, propostas, validação de preços. |
 | 4 | Integrações Externas | TASK-15, TASK-16 (em fase 3 pela dependência), TASK-23 a TASK-24 | Google Sheets (Esgotados + Não Comprar), cache strategy, app services. |
 | 5 | UI Streamlit | TASK-25 a TASK-34 | Sidebar, área principal, Scope Bar, File Inventory, toggles, filtros, progress bar. |
@@ -293,7 +293,7 @@ class FileError(NamedTuple):
 
 ---
 
-## FASE 2 — Ingestão e Validação
+## [x] FASE 2 — Ingestão e Validação
 
 ### TASK-09 — [x] Encoding fallback helper
 **Objectivo:** Implementar helper que tenta abrir um ficheiro com sequência de encodings (`utf-16 → utf-8 → latin1`), devolvendo o DataFrame ou levantando `InfoprexEncodingError`.
@@ -384,7 +384,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-12 — Integração de progress bar na ingestão
+### [x] TASK-12 — Integração de progress bar na ingestão
 **Objectivo:** Substituir `st.spinner` por `st.progress` com texto descritivo durante o parsing de ficheiros.
 **Referência PRD:** → PRD §6.1.8, §8.9
 **Bloqueado por:** TASK-11, TASK-25
@@ -395,10 +395,10 @@ class FileError(NamedTuple):
 - No fim: `progress_bar.empty()`.
 - Compatível com parallel parsing (callback via `as_completed`).
 **Critérios de Aceitação:**
-- [ ] Barra de progresso visível durante processamento de 2+ ficheiros.
-- [ ] Texto actualiza por cada ficheiro concluído.
-- [ ] Barra desaparece após conclusão.
-- [ ] Nunca fica em 0% sem avançar.
+- [x] Barra de progresso visível durante processamento de 2+ ficheiros.
+- [x] Texto actualiza por cada ficheiro concluído.
+- [x] Barra desaparece após conclusão.
+- [x] Nunca fica em 0% sem avançar.
 **Notas de Implementação:**
 - O callback é passado de `ui/` (onde existe o objecto `st.progress`) para `session_service`.
 - Em modo paralelo, `as_completed` garante actualização à medida que cada worker termina.
