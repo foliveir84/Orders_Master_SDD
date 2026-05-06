@@ -854,7 +854,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-28 — Detecção de filtros obsoletos
+### [x] TASK-28 — Detecção de filtros obsoletos
 **Objectivo:** Implementar aviso `⚠️ Filtros Modificados!` quando o utilizador altera a sidebar sem reprocessar.
 **Referência PRD:** → PRD §5.6.4, US-11
 **Bloqueado por:** TASK-08, TASK-26
@@ -867,10 +867,10 @@ class FileError(NamedTuple):
   - Aviso informativo — **não bloqueia** o utilizador.
   - A tabela **não é apagada**.
 **Critérios de Aceitação:**
-- [ ] Banner amarelo aparece quando labs mudam sem reprocessar.
-- [ ] Banner amarelo aparece quando ficheiro TXT muda sem reprocessar.
-- [ ] Banner desaparece após clicar `Processar Dados`.
-- [ ] Tabela antiga permanece visível (decisão do utilizador reprocessar).
+- [x] Banner amarelo aparece quando labs mudam sem reprocessar.
+- [x] Banner amarelo aparece quando ficheiro TXT muda sem reprocessar.
+- [x] Banner desaparece após clicar `Processar Dados`.
+- [x] Tabela antiga permanece visível (decisão do utilizador reprocessar).
 **Notas de Implementação:**
 - Comparação simples de listas/strings.
 - Usar `st.warning()` com ícone.

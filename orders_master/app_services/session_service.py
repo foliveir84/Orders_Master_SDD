@@ -27,6 +27,10 @@ def process_orders_session(  # noqa: PLR0913
     """
     Orquestra o pipeline pesado: parse -> concat -> aggregate -> popular SessionState.
     """
+    # 0. Actualizar snapshot de filtros (TASK-28)
+    state.last_labs_selection = list(labs_selected)
+    state.last_codes_file_name = getattr(codes_file, "name", None) if codes_file else None
+
     # 1. Parse codes TXT (se presente)
     lista_codigos = []
     lista_cla = labs_selected

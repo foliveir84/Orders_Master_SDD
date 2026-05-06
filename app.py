@@ -111,7 +111,7 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Área principal — renderização dos resultados
     # ------------------------------------------------------------------
-    render_main(state)
+    render_main(state, selection)
 
 
 if __name__ == "__main__":

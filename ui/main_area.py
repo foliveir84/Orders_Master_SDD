@@ -8,16 +8,36 @@ métricas, tabela agregada/detalhada, erros e inventário de ficheiros.
 import streamlit as st
 
 from orders_master.app_services.session_state import SessionState
+from ui.sidebar import SidebarSelection
 
 
-def render_main(state: SessionState) -> None:
+def render_main(state: SessionState, selection: SidebarSelection | None = None) -> None:
     """
     Renderiza a área principal do dashboard conforme PRD §6.1.3.
 
     Args:
         state: Estado actual da sessão com os DataFrames processados.
+        selection: Selecção actual da sidebar para detecção de filtros obsoletos.
     """
     st.title("📦 Orders Master Infoprex")
+
+    # ------------------------------------------------------------------
+    # TASK-28: Detecção de filtros obsoletos
+    # ------------------------------------------------------------------
+    if selection and not state.df_aggregated.empty:
+        labs_changed = (state.last_labs_selection or []) != selection.labs_selected
+
+        current_codes_name = (
+            getattr(selection.codes_file, "name", None) if selection.codes_file else None
+        )
+        codes_changed = state.last_codes_file_name != current_codes_name
+
+        if labs_changed or codes_changed:
+            st.warning(
+                "⚠️ **Filtros Modificados!** Os filtros de Laboratórios ou Códigos foram alterados. "
+                "Clique em **🚀 Processar Dados** para actualizar os resultados.",
+                icon="⚠️",
+            )
 
     # Sem dados ainda
     if state.df_aggregated.empty and state.df_detailed.empty:

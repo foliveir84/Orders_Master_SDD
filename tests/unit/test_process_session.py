@@ -44,6 +44,8 @@ def test_process_orders_session_success(session_state) -> None:
     assert not session_state.df_detailed.empty
     assert session_state.master_products[Columns.MARCA].iloc[0] == "MARCA X"
     assert session_state.df_raw[Columns.CODIGO].iloc[0] == 2001
+    assert session_state.last_labs_selection == ["LAB1"]
+    assert session_state.last_codes_file_name is None
 
 
 def test_process_orders_session_with_codes(session_state) -> None:
@@ -56,6 +58,7 @@ def test_process_orders_session_with_codes(session_state) -> None:
 
     codes_content = "2001\n"
     codes_file = BytesIO(codes_content.encode("utf-8"))
+    codes_file.name = "codes.txt"
 
     process_orders_session(
         files=[infoprex_file],
@@ -69,3 +72,4 @@ def test_process_orders_session_with_codes(session_state) -> None:
     # Apenas o produto 2001 deve estar presente
     assert len(session_state.df_raw) == 1
     assert session_state.df_raw[Columns.CODIGO].iloc[0] == 2001
+    assert session_state.last_codes_file_name == "codes.txt"
