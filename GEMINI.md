@@ -1,5 +1,5 @@
 # Project Overview
-**Orders Master Infoprex** is an internal web application designed for community pharmacies. It consolidates sales export files from the Sifarma/Infoprex module to generate multi-store order proposals. It applies deterministic aggregation rules, weighted averages on sales history, and adjusts for out-of-stock products (via the official Infarmed database) and collaborative "Do Not Buy" lists. 
+**Orders Master Infoprex** is an internal web application designed for community pharmacies. It consolidates sales export files from the Sifarma/Infoprex module to generate multi-store order proposals. It applies deterministic aggregation rules, weighted averages on sales history, and adjusts for out-of-stock products (via the official Infarmed database) and collaborative "Do Not Buy" lists.
 
 ## Main Technologies
 - **Language:** Python 3.11+

@@ -1251,7 +1251,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-44 — Pre-commit hooks (ruff, black, mypy)
+### [x] TASK-44 — Pre-commit hooks (ruff, black, mypy)
 **Objectivo:** Configurar `.pre-commit-config.yaml` com hooks de qualidade.
 **Referência PRD:** → PRD §7.3 (NFR-M8)
 **Bloqueado por:** TASK-01
@@ -1263,10 +1263,10 @@ class FileError(NamedTuple):
   - `mypy` (type checking — `orders_master/` apenas).
   - Hook custom: detecção de `secrets.toml` ou `.env` em staged files.
 **Critérios de Aceitação:**
-- [ ] `pre-commit run --all-files` passa numa base limpa.
-- [ ] Commit com bare `except:` → bloqueado por ruff (`E722`).
-- [ ] Commit com `print()` em `orders_master/` → bloqueado (grep hook ou ruff).
-- [ ] Commit de `secrets.toml` → bloqueado.
+- [x] `pre-commit run --all-files` passa numa base limpa.
+- [x] Commit com bare `except:` → bloqueado por ruff (`E722`).
+- [x] Commit com `print()` em `orders_master/` → bloqueado (grep hook ou ruff).
+- [x] Commit de `secrets.toml` → bloqueado.
 **Notas de Implementação:**
 - `rev:` pinados a versões estáveis.
 - Hook custom de secrets: `files: '(secrets\.toml|\.env)$'` → `fail_message`.

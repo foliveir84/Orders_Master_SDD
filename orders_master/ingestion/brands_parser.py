@@ -1,9 +1,11 @@
+from typing import Any
+
 import pandas as pd
-from typing import List, Any
+
 from orders_master.schemas import BrandRecordSchema
 
 
-def parse_brands_csv(files_like: List[Any]) -> pd.DataFrame:
+def parse_brands_csv(files_like: list[Any]) -> pd.DataFrame:
     """
     Lê múltiplos ficheiros CSV de marcas (Infoprex_SIMPLES), consolida-os
     e deduplica por código de produto.
@@ -30,14 +32,14 @@ def parse_brands_csv(files_like: List[Any]) -> pd.DataFrame:
             # Tenta ler o ficheiro - UploadedFile do Streamlit suporta seek(0) se necessário
             if hasattr(file_like, "seek"):
                 file_like.seek(0)
-            
+
             df = pd.read_csv(
                 file_like,
                 sep=";",
                 usecols=["COD", "MARCA"],
                 dtype=str,
                 on_bad_lines="skip",
-                encoding="utf-8"
+                encoding="utf-8",
             )
             dfs.append(df)
         except Exception:
@@ -52,10 +54,10 @@ def parse_brands_csv(files_like: List[Any]) -> pd.DataFrame:
 
     # 3. Limpeza de strings e NAs
     df_brands["MARCA"] = df_brands["MARCA"].str.strip()
-    
+
     # Substituir strings vazias ou nulas por pd.NA
     df_brands.loc[df_brands["MARCA"].isin(["", "nan", "None", "None"]), "MARCA"] = pd.NA
-    
+
     # Drop NAs na marca
     df_brands = df_brands.dropna(subset=["MARCA"])
 

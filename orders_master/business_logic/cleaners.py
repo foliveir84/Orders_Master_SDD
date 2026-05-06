@@ -1,11 +1,12 @@
 import pandas as pd
+
 from orders_master.constants import Columns
 
 
 def clean_designation_vectorized(s: pd.Series) -> pd.Series:
     """
     Limpa e normaliza uma série de designações de produtos de forma vectorizada.
-    
+
     Aplica:
     1. Preenchimento de NAs com string vazia.
     2. Normalização NFD para decompor acentos.
@@ -35,7 +36,7 @@ def clean_designation_vectorized(s: pd.Series) -> pd.Series:
 def remove_zombie_rows(df: pd.DataFrame) -> pd.DataFrame:
     """
     Remove linhas "zombie" (STOCK == 0 AND T Uni == 0) ao nível individual (loja).
-    
+
     Args:
         df (pd.DataFrame): DataFrame com colunas STOCK e T Uni.
 
@@ -49,7 +50,7 @@ def remove_zombie_rows(df: pd.DataFrame) -> pd.DataFrame:
 def remove_zombie_aggregated(df: pd.DataFrame) -> pd.DataFrame:
     """
     Remove códigos "zombie" (STOCK total == 0 AND T Uni total == 0) ao nível do grupo.
-    
+
     Identifica códigos que, após agregação, não têm stock nem vendas em nenhuma loja,
     e remove todas as linhas associadas a esses códigos.
 
@@ -62,10 +63,10 @@ def remove_zombie_aggregated(df: pd.DataFrame) -> pd.DataFrame:
     # Agrupar por código para identificar a situação global do produto
     # Usamos o DataFrame actual para calcular os totais por CÓDIGO
     df_totals = df.groupby(Columns.CODIGO, as_index=False)[[Columns.STOCK, Columns.T_UNI]].sum()
-    
+
     # Identificar códigos onde STOCK e T_UNI são ambos zero
     mask_zombie = (df_totals[Columns.STOCK] == 0) & (df_totals[Columns.T_UNI] == 0)
     codigos_zombie = df_totals.loc[mask_zombie, Columns.CODIGO].unique()
-    
+
     # Filtrar o DataFrame original removendo esses códigos
     return df[~df[Columns.CODIGO].isin(codigos_zombie)].copy()

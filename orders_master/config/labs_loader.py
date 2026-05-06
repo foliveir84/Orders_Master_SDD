@@ -2,7 +2,6 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List
 
 import streamlit as st
 from pydantic import RootModel, model_validator
@@ -12,13 +11,13 @@ from orders_master.exceptions import ConfigError
 logger = logging.getLogger(__name__)
 
 
-class LabsConfig(RootModel[Dict[str, List[str]]]):
+class LabsConfig(RootModel[dict[str, list[str]]]):
     """
     Schema for laboratorios.json validation.
     Maps Laboratory Name -> List of CLA codes.
     """
 
-    root: Dict[str, List[str]]
+    root: dict[str, list[str]]
 
     @model_validator(mode="after")
     def validate_labs(self) -> "LabsConfig":
@@ -27,7 +26,7 @@ class LabsConfig(RootModel[Dict[str, List[str]]]):
         Performs automatic deduplication of codes and warns about duplicates.
         """
         new_root = {}
-        all_codes: Dict[str, List[str]] = {}
+        all_codes: dict[str, list[str]] = {}
 
         for lab_name, cla_codes in self.root.items():
             # Validate Lab Name: min length 2, starts with uppercase
@@ -64,7 +63,7 @@ class LabsConfig(RootModel[Dict[str, List[str]]]):
                 else:
                     seen_codes.add(code)
                     unique_codes.append(code)
-                    
+
                     # Track codes across all labs for warnings
                     if code in all_codes:
                         all_codes[code].append(lab_name)
@@ -88,10 +87,10 @@ class LabsConfig(RootModel[Dict[str, List[str]]]):
 def get_file_mtime(path: Path) -> float:
     """
     Returns the modification time of a file.
-    
+
     Args:
         path (Path): Path to the file.
-        
+
     Returns:
         float: Modification time or 0.0 if error.
     """
@@ -101,19 +100,19 @@ def get_file_mtime(path: Path) -> float:
         return 0.0
 
 
-@st.cache_data
+@st.cache_data  # type: ignore
 def load_labs(mtime: float, path: Path = Path("config/laboratorios.json")) -> LabsConfig:
     """
     Loads and validates laboratorios.json.
     Uses mtime to invalidate cache in Streamlit.
-    
+
     Args:
         mtime (float): File modification time (used as cache key).
         path (Path): Path to the JSON file.
-        
+
     Returns:
         LabsConfig: Validated configuration object.
-        
+
     Raises:
         ConfigError: If file not found, invalid JSON, or schema validation fails.
     """
@@ -121,7 +120,7 @@ def load_labs(mtime: float, path: Path = Path("config/laboratorios.json")) -> La
         raise ConfigError(f"Ficheiro de configuração não encontrado: {path}")
 
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
         raise ConfigError(f"JSON inválido em {path}: {e}")

@@ -1,13 +1,14 @@
-import pytest
 import pandas as pd
-from orders_master.constants import Columns, Weights, GroupLabels
+import pytest
+
+from orders_master.constants import Columns, GroupLabels, Weights
 from orders_master.schemas import (
-    InfoprexRowSchema,
     AggregatedRowSchema,
-    DetailedRowSchema,
-    ShortageRecordSchema,
-    DoNotBuyRecordSchema,
     BrandRecordSchema,
+    DetailedRowSchema,
+    DoNotBuyRecordSchema,
+    InfoprexRowSchema,
+    ShortageRecordSchema,
 )
 
 

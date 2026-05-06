@@ -5,7 +5,7 @@ O projecto segue uma arquitectura em camadas com separação estrita entre domí
 ## Arquitectura em Camadas
 - **Presentation (Apresentação):** `app.py` e a pasta `ui/`. Componentes puramente focados no Streamlit.
 - **Application (Aplicação):** `orders_master/app_services/`. Coordena processos de ingestão e agregação.
-- **Domain (Domínio):** Toda a pasta `orders_master/` (excepto app_services). Concentra as integrações externas, lógicas de limpeza, validações de schema e constantes. 
+- **Domain (Domínio):** Toda a pasta `orders_master/` (excepto app_services). Concentra as integrações externas, lógicas de limpeza, validações de schema e constantes.
 
 ## Estrutura de Directorias
 ```text

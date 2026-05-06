@@ -1,6 +1,6 @@
 # Lista de Tarefas para Execução por Agentes
 
-Este documento contém os prompts ajustados e ordenados por **ondas de execução**, de acordo com o grafo de dependências do ficheiro `@tasks.md`. 
+Este documento contém os prompts ajustados e ordenados por **ondas de execução**, de acordo com o grafo de dependências do ficheiro `@tasks.md`.
 A análise da outra LLM está **100% correcta**. Não houve qualquer erro na criação do ficheiro `tasks.md`. A numeração das tarefas não dita a cronologia rígida nem obriga a que pertençam à mesma fase. Os identificadores numéricos servem unicamente como "chaves primárias" estáticas. A arrumação (e.g. TASK-15 e TASK-16 na Fase 4) é meramente temática (por se tratarem de integrações externas).
 
 Para construir o sistema com sucesso e sem conflitos, a execução deve seguir as **regras de dependência** (o que é bloqueado pelo quê).

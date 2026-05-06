@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+
 import pandas as pd
+
 from orders_master.exceptions import FileError
 
 
@@ -41,11 +42,11 @@ class SessionState:
     df_aggregated: pd.DataFrame = field(default_factory=pd.DataFrame)
     df_detailed: pd.DataFrame = field(default_factory=pd.DataFrame)
     df_master_products: pd.DataFrame = field(default_factory=pd.DataFrame)
-    last_labs_selection: Optional[List[str]] = None
-    last_codes_file_name: Optional[str] = None
-    file_errors: List[FileError] = field(default_factory=list)
-    invalid_codes: List[str] = field(default_factory=list)
-    file_inventory: List[FileInventoryEntry] = field(default_factory=list)
+    last_labs_selection: list[str] | None = None
+    last_codes_file_name: str | None = None
+    file_errors: list[FileError] = field(default_factory=list)
+    invalid_codes: list[str] = field(default_factory=list)
+    file_inventory: list[FileInventoryEntry] = field(default_factory=list)
     scope_context: ScopeContext = field(default_factory=ScopeContext)
 
 
@@ -60,7 +61,7 @@ def get_state() -> SessionState:
 
         if "orders_master_state" not in st.session_state:
             st.session_state["orders_master_state"] = SessionState()
-        
+
         # Garantir que o retorno é do tipo SessionState (ajuda o mypy)
         state: SessionState = st.session_state["orders_master_state"]
         return state

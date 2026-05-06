@@ -9,8 +9,8 @@ infoprex_data = [
     "7654321\tPROD3\tIlha\t0\t20.0\t15.0\t\t\tLAB3\t15/05/2026\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2",
 ]
 
-with codecs.open('tests/fixtures/infoprex_mini.txt', 'w', encoding='utf-16') as f:
-    f.write('\ufeff')
-    f.write('\n'.join(infoprex_data) + '\n')
+with codecs.open("tests/fixtures/infoprex_mini.txt", "w", encoding="utf-16") as f:
+    f.write("\ufeff")
+    f.write("\n".join(infoprex_data) + "\n")
 
 print("Rewritten infoprex_mini.txt")

@@ -1,9 +1,12 @@
-import streamlit as st
 from pathlib import Path
+
+import streamlit as st
+
 from orders_master.logger import configure_logging
 
 # Initialize Centralized Logging
 configure_logging(Path("logs"))
+
 
 def main() -> None:
     st.set_page_config(
@@ -15,6 +18,7 @@ def main() -> None:
     st.title("Orders Master Infoprex")
     st.write("Bem-vindo ao sistema de gestão de encomendas.")
     st.info("A aguardar configuração de dados na sidebar...")
+
 
 if __name__ == "__main__":
     main()

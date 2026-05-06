@@ -3,7 +3,6 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Dict
 
 import streamlit as st
 from pydantic import RootModel, model_validator
@@ -13,13 +12,13 @@ from orders_master.exceptions import ConfigError
 logger = logging.getLogger(__name__)
 
 
-class LocationsConfig(RootModel[Dict[str, str]]):
+class LocationsConfig(RootModel[dict[str, str]]):
     """
     Schema for localizacoes.json validation.
     Maps Search Term -> Alias.
     """
 
-    root: Dict[str, str]
+    root: dict[str, str]
 
     @model_validator(mode="after")
     def validate_locations(self) -> "LocationsConfig":
@@ -39,10 +38,10 @@ class LocationsConfig(RootModel[Dict[str, str]]):
 def get_file_mtime(path: Path) -> float:
     """
     Returns the modification time of a file.
-    
+
     Args:
         path (Path): Path to the file.
-        
+
     Returns:
         float: Modification time or 0.0 if error.
     """
@@ -52,30 +51,30 @@ def get_file_mtime(path: Path) -> float:
         return 0.0
 
 
-@st.cache_data
+@st.cache_data  # type: ignore
 def load_locations(mtime: float, path: Path = Path("config/localizacoes.json")) -> LocationsConfig:
     """
     Loads and validates localizacoes.json.
     Uses mtime to invalidate cache in Streamlit.
-    
+
     Args:
         mtime (float): File modification time (used as cache key).
         path (Path): Path to the JSON file.
-        
+
     Returns:
         LocationsConfig: Validated configuration object.
-        
+
     Raises:
         ConfigError: If file not found, invalid JSON, or schema validation fails.
     """
     if not path.exists():
-        # Optional: return empty config if not found? 
-        # The task says "Raise ConfigError for file not found" in labs_loader, 
+        # Optional: return empty config if not found?
+        # The task says "Raise ConfigError for file not found" in labs_loader,
         # following the same pattern.
         raise ConfigError(f"Ficheiro de configuração não encontrado: {path}")
 
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
         raise ConfigError(f"JSON inválido em {path}: {e}")
@@ -90,14 +89,14 @@ def load_locations(mtime: float, path: Path = Path("config/localizacoes.json")) 
         raise ConfigError(f"Falha na validação do schema para {path}: {e}")
 
 
-def map_location(name: str, aliases: Dict[str, str]) -> str:
+def map_location(name: str, aliases: dict[str, str]) -> str:
     """
     Maps a raw location name to its alias using case-insensitive word-boundary matching.
-    
+
     Args:
         name (str): Raw location name from Infoprex file.
         aliases (Dict[str, str]): Dictionary of search terms to aliases.
-        
+
     Returns:
         str: Mapped alias (Title Case) or the original name in Title Case if no match.
     """

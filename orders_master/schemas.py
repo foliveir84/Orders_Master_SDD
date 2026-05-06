@@ -1,6 +1,8 @@
-from typing import Any, Dict, List, Optional, ClassVar
+from typing import ClassVar
+
 import pandas as pd
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict
+
 from orders_master.constants import Columns
 
 
@@ -22,7 +24,7 @@ class DataFrameSchema(BaseModel):
 class InfoprexRowSchema(DataFrameSchema):
     """Schema para validação de uma linha individual do Infoprex (pós-parsing)."""
 
-    required_columns: ClassVar[List[str]] = [
+    required_columns: ClassVar[list[str]] = [
         Columns.CODIGO,
         Columns.DESIGNACAO,
         Columns.LOCALIZACAO,
@@ -48,7 +50,7 @@ class InfoprexRowSchema(DataFrameSchema):
 class AggregatedRowSchema(DataFrameSchema):
     """Schema para a vista agregada (1 linha por produto)."""
 
-    required_columns: ClassVar[List[str]] = [
+    required_columns: ClassVar[list[str]] = [
         Columns.CODIGO,
         Columns.DESIGNACAO,
         Columns.PVP_MEDIO,
@@ -68,7 +70,7 @@ class AggregatedRowSchema(DataFrameSchema):
 class DetailedRowSchema(DataFrameSchema):
     """Schema para a vista detalhada (loja + linha Grupo)."""
 
-    required_columns: ClassVar[List[str]] = [
+    required_columns: ClassVar[list[str]] = [
         Columns.CODIGO,
         Columns.DESIGNACAO,
         Columns.LOCALIZACAO,
@@ -90,7 +92,7 @@ class ShortageRecordSchema(DataFrameSchema):
     """Schema para a BD de Esgotados do Infarmed."""
 
     # Nomes originais da Google Sheet (serão renomeados após merge)
-    required_columns: ClassVar[List[str]] = [
+    required_columns: ClassVar[list[str]] = [
         "Número de registo",
         "Data de início de rutura",
         "Data prevista para reposição",
@@ -107,7 +109,7 @@ class ShortageRecordSchema(DataFrameSchema):
 class DoNotBuyRecordSchema(DataFrameSchema):
     """Schema para a lista "Não Comprar"."""
 
-    required_columns: ClassVar[List[str]] = ["CNP", "FARMACIA", "DATA"]
+    required_columns: ClassVar[list[str]] = ["CNP", "FARMACIA", "DATA"]
 
     @classmethod
     def validate_df(cls, df: pd.DataFrame) -> pd.DataFrame:
@@ -120,7 +122,7 @@ class DoNotBuyRecordSchema(DataFrameSchema):
 class BrandRecordSchema(DataFrameSchema):
     """Schema para os ficheiros de Marcas."""
 
-    required_columns: ClassVar[List[str]] = ["COD", "MARCA"]
+    required_columns: ClassVar[list[str]] = ["COD", "MARCA"]
 
     @classmethod
     def validate_df(cls, df: pd.DataFrame) -> pd.DataFrame:
