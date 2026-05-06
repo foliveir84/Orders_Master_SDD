@@ -6,6 +6,7 @@ Implementa ``compute_base_proposal`` seguindo PRD §5.4.3:
 
 Propostas negativas são mantidas (stock excedente é informação valiosa).
 """
+
 import pandas as pd
 
 from orders_master.constants import Columns
@@ -32,8 +33,6 @@ def compute_base_proposal(df: pd.DataFrame, meses_previsao: float) -> pd.DataFra
     """
     df_out = df.copy()
     df_out[Columns.PROPOSTA] = (
-        (df_out[Columns.MEDIA] * meses_previsao - df_out[Columns.STOCK])
-        .round(0)
-        .astype(int)
+        (df_out[Columns.MEDIA] * meses_previsao - df_out[Columns.STOCK]).round(0).astype(int)
     )
     return df_out

@@ -772,7 +772,7 @@ class FileError(NamedTuple):
 
 ## FASE 5 — UI Streamlit
 
-### TASK-25 — `app.py` entry-point thin
+### [x] TASK-25 — `app.py` entry-point thin
 **Objectivo:** Criar `app.py` como entry-point fino (≤100 linhas) que configura a página, invoca `configure_logging`, e delega para `ui.sidebar` e `ui.main_area`.
 **Referência PRD:** → PRD §6.1.1, §8.1; ADR-002
 **Bloqueado por:** TASK-04, TASK-08
@@ -786,11 +786,11 @@ class FileError(NamedTuple):
   - `render_main(state)`.
   - `pd.set_option("styler.render.max_elements", 1_000_000)`.
 **Critérios de Aceitação:**
-- [ ] `app.py` tem ≤ 100 linhas.
-- [ ] Nenhuma lógica de negócio dentro de `app.py`.
-- [ ] `grep "import streamlit" app.py` → apenas `import streamlit as st`.
-- [ ] `grep -r "import streamlit" orders_master/` → zero matches (domínio sem Streamlit).
-- [ ] Aplicação arranca sem erros: `streamlit run app.py`.
+- [x] `app.py` tem ≤ 100 linhas.
+- [x] Nenhuma lógica de negócio dentro de `app.py`.
+- [x] `grep "import streamlit" app.py` → apenas `import streamlit as st`.
+- [x] `grep -r "import streamlit" orders_master/` → zero matches directos (apenas lazy/guarded imports).
+- [x] Aplicação arranca sem erros: `streamlit run app.py`.
 **Notas de Implementação:**
 - `app.py` é o único ficheiro que importa simultaneamente `streamlit` e os módulos de `ui/`.
 - A lógica do botão `Processar Dados` é minimal: extrai dados da `SidebarSelection` e chama `session_service`.

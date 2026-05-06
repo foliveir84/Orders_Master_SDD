@@ -1,8 +1,8 @@
 """
 Testes unitários para compute_base_proposal — TASK-20.
 """
+
 import pandas as pd
-import pytest
 
 from orders_master.business_logic.proposals import compute_base_proposal
 from orders_master.constants import Columns
@@ -43,7 +43,6 @@ def test_proposta_is_int() -> None:
     """A proposta deve ser do tipo int após arredondamento."""
     df = make_df(media=7.3, stock=3)
     result = compute_base_proposal(df, meses_previsao=1.5)
-    proposta_val = result[Columns.PROPOSTA].iloc[0]
     assert pd.api.types.is_integer_dtype(result[Columns.PROPOSTA].dtype)
 
 
