@@ -1297,7 +1297,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-46 — Documentação README + architecture.md
+### [x] TASK-46 — Documentação README + architecture.md
 **Objectivo:** Escrever README com setup em ≤5 passos e `docs/architecture.md` com overview para novos developers.
 **Referência PRD:** → PRD §7.3 (NFR-M10)
 **Bloqueado por:** TASK-01
@@ -1313,8 +1313,8 @@ class FileError(NamedTuple):
   - Fluxo de dados (ingestão → agregação → proposta → render).
   - Decisões arquitecturais key (links para ADRs).
 **Critérios de Aceitação:**
-- [ ] README permite onboarding de um novo developer em ≤ 5 passos.
-- [ ] `architecture.md` explica a separação domain/UI sem ambiguidade.
+- [x] README permite onboarding de um novo developer em ≤ 5 passos.
+- [x] `architecture.md` explica a separação domain/UI sem ambiguidade.
 **Notas de Implementação:**
 - README em Português Europeu (consistente com a UI).
 - Diagrama em Mermaid (renderizável pelo GitHub).
