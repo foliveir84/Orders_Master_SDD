@@ -579,7 +579,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-21 — Média ponderada + presets + janela
+### TASK-21 — [x] Média ponderada + presets + janela
 **Objectivo:** Implementar cálculo de média ponderada com 4 pesos configuráveis e selecção de janela (mês actual vs mês anterior).
 **Referência PRD:** → PRD §5.4.2, §8.4; ADR-004
 **Bloqueado por:** TASK-05, TASK-06
@@ -591,13 +591,13 @@ class FileError(NamedTuple):
   - `load_presets(path) -> dict[str, tuple[float,...]]` — loader de `config/presets.yaml`.
 - Usa indexação posicional via âncora `T Uni` (ADR-004).
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_averages.py`:
-  - [ ] Pesos `[0.4, 0.3, 0.2, 0.1]` → resultado determinístico com fixture conhecida.
-  - [ ] Todos os 3 presets (Conservador, Padrão, Agressivo) → `sum(weights) == 1.0`.
-  - [ ] Toggle mês anterior: índices deslocam-se 1 posição para a esquerda.
-  - [ ] `sum(weights) != 1.0` → assertion error.
-  - [ ] Janela ultrapassa início do histórico → assertion error.
-  - [ ] Presets YAML carregados correctamente.
+- [x] Teste `tests/unit/test_averages.py`:
+  - [x] Pesos `[0.4, 0.3, 0.2, 0.1]` → resultado determinístico com fixture conhecida.
+  - [x] Todos os 3 presets (Conservador, Padrão, Agressivo) → `sum(weights) == 1.0`.
+  - [x] Toggle mês anterior: índices deslocam-se 1 posição para a esquerda.
+  - [x] `sum(weights) != 1.0` → assertion error.
+  - [x] Janela ultrapassa início do histórico → assertion error.
+  - [x] Presets YAML carregados correctamente.
 **Notas de Implementação:**
 - `idx_tuni = df.columns.get_loc('T Uni')`.
 - `offset = 2 if use_previous_month else 1`.
