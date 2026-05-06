@@ -532,7 +532,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-19 — Filtro anti-zombies (individual + grupo)
+### TASK-19 — [x] Filtro anti-zombies (individual + grupo)
 **Objectivo:** Implementar lógica de remoção de "zombies" em dois pontos: pré-groupby (individual) e pós-groupby (grupo).
 **Referência PRD:** → PRD §5.2.4
 **Bloqueado por:** TASK-05
@@ -542,12 +542,12 @@ class FileError(NamedTuple):
   - `remove_zombie_rows(df) -> pd.DataFrame` — remove linhas com `STOCK == 0 AND T Uni == 0`.
   - `remove_zombie_aggregated(df) -> pd.DataFrame` — identifica códigos cuja linha de grupo tem `STOCK == 0 AND T Uni == 0`, remove todas as linhas desses códigos.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_cleaners.py`:
-  - [ ] Individual: linha com `STOCK=0, T_Uni=0` → removida.
-  - [ ] Individual: linha com `STOCK=1, T_Uni=0` → mantida.
-  - [ ] Individual: linha com `STOCK=0, T_Uni=5` → mantida.
-  - [ ] Grupo: código onde todas as linhas somam `STOCK=0, T_Uni=0` → código inteiro removido.
-  - [ ] Grupo: código com uma loja com `STOCK=1` → código mantido.
+- [x] Teste `tests/unit/test_cleaners.py`:
+  - [x] Individual: linha com `STOCK=0, T_Uni=0` → removida.
+  - [x] Individual: linha com `STOCK=1, T_Uni=0` → mantida.
+  - [x] Individual: linha com `STOCK=0, T_Uni=5` → mantida.
+  - [x] Grupo: código onde todas as linhas somam `STOCK=0, T_Uni=0` → código inteiro removido.
+  - [x] Grupo: código com uma loja com `STOCK=1` → código mantido.
 **Notas de Implementação:**
 - Anti-zombie individual corre ANTES do groupby (dentro de `aggregate()`).
 - Anti-zombie grupo corre DEPOIS do groupby (no resultado agregado).
