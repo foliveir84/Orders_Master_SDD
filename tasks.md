@@ -40,7 +40,7 @@ Cada tarefa segue o template:
 |---|---|---|---|
 | 1 | [x] Setup e Fundações | TASK-01 a TASK-08 | Estrutura do projecto, constantes, schemas, logging, secrets, config loaders. |
 | 2 | [x] Ingestão e Validação | TASK-09 a TASK-13 | Parsers Infoprex + códigos TXT + marcas + encoding fallback + parallel parsing. |
-| 3 | Agregação e Lógica de Negócio | TASK-14 a TASK-22 | Motor de agregação único, limpeza vectorizada, médias, propostas, validação de preços. |
+| 3 | [x] Agregação e Lógica de Negócio | TASK-14 a TASK-22 | Motor de agregação único, limpeza vectorizada, médias, propostas, validação de preços. |
 | 4 | Integrações Externas | TASK-15, TASK-16 (em fase 3 pela dependência), TASK-23 a TASK-24 | Google Sheets (Esgotados + Não Comprar), cache strategy, app services. |
 | 5 | UI Streamlit | TASK-25 a TASK-34 | Sidebar, área principal, Scope Bar, File Inventory, toggles, filtros, progress bar. |
 | 6 | Formatação e Exportação | TASK-40 a TASK-43 | Styler web, openpyxl Excel, SSOT de rules, nome dinâmico, teste de paridade. |
@@ -435,7 +435,7 @@ class FileError(NamedTuple):
 
 ---
 
-## FASE 3 — Agregação e Lógica de Negócio
+## [x] FASE 3 — Agregação e Lógica de Negócio
 
 ### [x] TASK-14 — Motor de agregação único
 **Objectivo:** Implementar função única `aggregate(df, detailed, master_products)` que produz tanto a vista agrupada como a detalhada, eliminando duplicação do original.
@@ -505,7 +505,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-18 — Price validation flags
+### [x] TASK-18 — Price validation flags
 **Objectivo:** Implementar `flag_price_anomalies(df)` que marca linhas com preços inválidos.
 **Referência PRD:** → PRD §4.3.2, §8.5
 **Bloqueado por:** TASK-05
@@ -609,7 +609,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-22 — Proposta rutura
+### [x] TASK-22 — Proposta rutura
 **Objectivo:** Implementar fórmula de proposta para produtos em rutura: `round(Media/30 × TimeDelta − STOCK)`.
 **Referência PRD:** → PRD §5.4.4
 **Bloqueado por:** TASK-20
@@ -620,12 +620,12 @@ class FileError(NamedTuple):
   - Sobrescreve `Proposta` apenas onde `TimeDelta` não é `NaN`.
   - `Proposta_rutura = round((Media / 30) × TimeDelta − STOCK)`.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_proposals.py`:
-  - [ ] `TimeDelta = 60, Media = 30, Stock = 10` → `Proposta = round(30/30 × 60 - 10) = 50`.
-  - [ ] `TimeDelta < 0` (reposição já passou) → proposta negativa/zero (comportamento passivo).
-  - [ ] `TimeDelta == 0` → `Proposta = -Stock`.
-  - [ ] `TimeDelta = NaN` → mantém proposta base (sem sobrescrita).
-  - [ ] Proposta base é calculada primeiro; rutura sobrescreve depois.
+- [x] Teste `tests/unit/test_proposals.py`:
+  - [x] `TimeDelta = 60, Media = 30, Stock = 10` → `Proposta = round(30/30 × 60 - 10) = 50`.
+  - [x] `TimeDelta < 0` (reposição já passou) → proposta negativa/zero (comportamento passivo).
+  - [x] `TimeDelta == 0` → `Proposta = -Stock`.
+  - [x] `TimeDelta = NaN` → mantém proposta base (sem sobrescrita).
+  - [x] Proposta base é calculada primeiro; rutura sobrescreve depois.
 **Notas de Implementação:**
 - `mask = df['TimeDelta'].notna()`.
 - `df.loc[mask, 'Proposta'] = ((df.loc[mask, 'Media'] / 30) * df.loc[mask, 'TimeDelta'] - df.loc[mask, 'STOCK']).round(0).astype(int)`.

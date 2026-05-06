@@ -1,10 +1,9 @@
-"""
-Testes unitários para compute_base_proposal — TASK-20.
-"""
-
 import pandas as pd
 
-from orders_master.business_logic.proposals import compute_base_proposal
+from orders_master.business_logic.proposals import (
+    compute_base_proposal,
+    compute_shortage_proposal,
+)
 from orders_master.constants import Columns
 
 
@@ -80,3 +79,67 @@ def test_fractional_meses() -> None:
     df = make_df(media=10.0, stock=5)
     result = compute_base_proposal(df, meses_previsao=1.5)
     assert result[Columns.PROPOSTA].iloc[0] == 10
+
+
+# ---------------------------------------------------------------------------
+# Testes de Rutura (TASK-22)
+# ---------------------------------------------------------------------------
+
+
+def test_shortage_proposal_success() -> None:
+    """TimeDelta = 60, Media = 30, Stock = 10 → Proposta = 50."""
+    df = pd.DataFrame(
+        {
+            Columns.MEDIA: [30.0],
+            Columns.STOCK: [10],
+            Columns.TIME_DELTA: [60],
+            Columns.PROPOSTA: [100],  # Proposta base inicial
+        }
+    )
+    result = compute_shortage_proposal(df)
+    # Proposta = (30/30 * 60 - 10) = 50
+    assert result[Columns.PROPOSTA].iloc[0] == 50
+
+
+def test_shortage_overwrites_base() -> None:
+    """A proposta de rutura deve sobrescrever a proposta base apenas se TimeDelta existir."""
+    df = pd.DataFrame(
+        {
+            Columns.MEDIA: [30.0, 30.0],
+            Columns.STOCK: [10, 10],
+            Columns.TIME_DELTA: [60, None],
+            Columns.PROPOSTA: [100, 100],
+        }
+    )
+    result = compute_shortage_proposal(df)
+    assert result[Columns.PROPOSTA].iloc[0] == 50  # Sobrescrita
+    assert result[Columns.PROPOSTA].iloc[1] == 100  # Mantida base
+
+
+def test_shortage_timedelta_zero() -> None:
+    """TimeDelta = 0 → Proposta = -STOCK."""
+    df = pd.DataFrame(
+        {
+            Columns.MEDIA: [30.0],
+            Columns.STOCK: [10],
+            Columns.TIME_DELTA: [0],
+            Columns.PROPOSTA: [5],
+        }
+    )
+    result = compute_shortage_proposal(df)
+    assert result[Columns.PROPOSTA].iloc[0] == -10
+
+
+def test_shortage_timedelta_negative() -> None:
+    """TimeDelta < 0 → Proposta negativa mantida (excedente)."""
+    # TimeDelta = -30, Media = 30, Stock = 10 → Proposta = (1 * -30 - 10) = -40
+    df = pd.DataFrame(
+        {
+            Columns.MEDIA: [30.0],
+            Columns.STOCK: [10],
+            Columns.TIME_DELTA: [-30],
+            Columns.PROPOSTA: [5],
+        }
+    )
+    result = compute_shortage_proposal(df)
+    assert result[Columns.PROPOSTA].iloc[0] == -40
