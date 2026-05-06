@@ -4,6 +4,7 @@ ui/main_area.py — Área principal do dashboard (§6.1.3).
 Implementa ``render_main(state)`` que apresenta a área de dados principal:
 métricas, tabela agregada/detalhada, erros e inventário de ficheiros.
 """
+
 import streamlit as st
 
 from orders_master.app_services.session_state import SessionState

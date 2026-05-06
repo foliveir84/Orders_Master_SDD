@@ -4,6 +4,7 @@ ui/sidebar.py — Bloco de controlo lateral (§6.1.2).
 Implementa ``render_sidebar()`` que devolve uma ``SidebarSelection`` tipada
 com todos os inputs do utilizador (ficheiros, labs, botão de processar).
 """
+
 from dataclasses import dataclass, field
 from typing import Any
 

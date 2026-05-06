@@ -1057,7 +1057,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-41 — Web Styler
+### [x] TASK-41 — Web Styler
 **Objectivo:** Implementar `build_styler(df)` que aplica as regras de `rules.py` ao Pandas Styler para renderização web.
 **Referência PRD:** → PRD §6.1.6
 **Bloqueado por:** TASK-40
@@ -1068,13 +1068,13 @@ class FileError(NamedTuple):
   - Aplica as 5 regras de `RULES` em ordem de precedência.
   - Configura `pd.set_option("styler.render.max_elements", 1_000_000)`.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_web_styler.py`:
-  - [ ] Linha `Grupo` → fundo preto, letra branca, bold em toda a linha.
-  - [ ] Linha com `DATA_OBS` → fundo roxo de `CÓDIGO` até `T Uni`.
-  - [ ] Célula `Proposta` com `DIR` preenchido → fundo vermelho.
-  - [ ] Célula `DTVAL` com validade ≤ 4 meses → fundo laranja.
-  - [ ] Célula `PVP_Médio` com `price_anomaly` → prefixo `⚠️`.
-  - [ ] Precedência: linha Grupo não recebe regras 2-5.
+- [x] Teste `tests/unit/test_web_styler.py`:
+  - [x] Linha `Grupo` → fundo preto, letra branca, bold em toda a linha.
+  - [x] Linha com `DATA_OBS` → fundo roxo de `CÓDIGO` até `T Uni`.
+  - [x] Célula `Proposta` com `DIR` preenchido → fundo vermelho.
+  - [x] Célula `DTVAL` com validade ≤ 4 meses → fundo laranja.
+  - [x] Célula `PVP_Médio` com `price_anomaly` → prefixo `⚠️`.
+  - [x] Precedência: linha Grupo não recebe regras 2-5.
 **Notas de Implementação:**
 - Usar `Styler.apply()` row-wise para regra Grupo.
 - Usar `Styler.applymap()` ou `Styler.apply()` cell-wise para regras 2-5.
