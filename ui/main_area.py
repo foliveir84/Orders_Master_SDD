@@ -22,6 +22,12 @@ def render_main(state: SessionState, selection: SidebarSelection | None = None) 
     st.title("📦 Orders Master Infoprex")
 
     # ------------------------------------------------------------------
+    # TASK-32: Banner e Documentação
+    # ------------------------------------------------------------------
+    render_top_banner(state)
+    render_documentation_expander()
+
+    # ------------------------------------------------------------------
     # TASK-28: Detecção de filtros obsoletos
     # ------------------------------------------------------------------
     if selection and not state.df_aggregated.empty:
@@ -88,3 +94,44 @@ def render_main(state: SessionState, selection: SidebarSelection | None = None) 
                     f"| {entry.n_linhas} linhas | DUV: {entry.duv_max}"
                     + (f" | ⚠️ {entry.avisos}" if entry.avisos else "")
                 )
+
+
+def render_top_banner(state: SessionState) -> None:
+    """Renderiza o banner com a data de consulta da BD Rupturas."""
+    data = state.shortages_data_consulta or "Não foi possível carregar a INFO"
+
+    # Estilização conforme PRD §6.2.3
+    st.markdown(
+        f"""
+        <div style="
+            background: linear-gradient(90deg, #e0f7fa 0%, #f1f8e9 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #c8e6c9;
+        ">
+            <span style="color: #555; font-size: 16px;">🗓️ Data Consulta BD Rupturas — </span>
+            <span style="color: #0078D7; font-size: 24px; font-weight: bold;">{data}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_documentation_expander() -> None:
+    """Renderiza o expander com a documentação básica."""
+    with st.expander("ℹ️ Documentação e Workflow", expanded=False):
+        st.markdown(
+            """
+        ### Como utilizar o Orders Master
+        1. **Configurar Sidebar**: Seleccione os laboratórios ou carregue uma lista de CNPs (.txt).
+        2. **Dados Base**: Carregue os ficheiros exportados do Infoprex (UTF-16, Tab separated).
+        3. **Processar**: Clique em **🚀 Processar Dados**.
+        4. **Ajustar**: Use os controlos na área principal para ajustar meses de previsão e pesos.
+        5. **Exportar**: Clique em **📥 Download Excel Encomendas** para obter o ficheiro final.
+
+        ---
+        *Dica: O sistema detecta automaticamente rupturas oficiais e sinaliza produtos 'Não Comprar'.*
+        """
+        )

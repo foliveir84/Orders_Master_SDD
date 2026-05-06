@@ -951,7 +951,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-32 — Banner BD Rupturas + documentação expander
+### [x] TASK-32 — Banner BD Rupturas + documentação expander
 **Objectivo:** Implementar banner no topo com data de consulta da BD Esgotados e expander de documentação/workflow.
 **Referência PRD:** → PRD §6.2.3, §6.1.3 (items 1-2)
 **Bloqueado por:** TASK-15, TASK-25
@@ -964,10 +964,10 @@ class FileError(NamedTuple):
   - Se falha de integração: `"Não foi possível carregar a INFO"`.
   - Expander `"ℹ️ Documentação e Workflow"` com instruções de utilização.
 **Critérios de Aceitação:**
-- [ ] Banner sempre visível (mesmo antes de processar).
-- [ ] Data correcta extraída da sheet.
-- [ ] Fallback gracioso se integração falha.
-- [ ] Expander com conteúdo útil (workflow resumido).
+- [x] Banner sempre visível (mesmo antes de processar).
+- [x] Data correcta extraída da sheet.
+- [x] Fallback gracioso se integração falha.
+- [x] Expander com conteúdo útil (workflow resumido).
 **Notas de Implementação:**
 - Usar `st.markdown(html, unsafe_allow_html=True)` para estilização customizada.
 - `Data da Consulta` é o primeiro valor da coluna `'Data da Consulta'` da sheet de Esgotados.

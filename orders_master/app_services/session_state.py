@@ -50,6 +50,7 @@ class SessionState:
     invalid_codes: list[str] = field(default_factory=list)
     file_inventory: list[FileInventoryEntry] = field(default_factory=list)
     scope_context: ScopeContext = field(default_factory=ScopeContext)
+    shortages_data_consulta: str | None = None
 
 
 def get_state() -> SessionState:

@@ -11,6 +11,7 @@ from orders_master.exceptions import FileError, InfoprexEncodingError, InfoprexS
 from orders_master.ingestion.brands_parser import parse_brands_csv
 from orders_master.ingestion.codes_txt_parser import parse_codes_txt
 from orders_master.ingestion.infoprex_parser import parse_infoprex_file
+from orders_master.integrations.shortages import fetch_shortages_db, merge_shortages
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,25 @@ def process_orders_session(  # noqa: PLR0913
         return
 
     df_full = pd.concat(dfs, ignore_index=True)
+
+    # 2.5 Integrar BD de Rupturas (TASK-32)
+    try:
+        import streamlit as st  # noqa: PLC0415
+
+        url = st.secrets.get("SHORTAGES_URL")
+        if url:
+            df_shortages = fetch_shortages_db(url)
+            if not df_shortages.empty:
+                # O merge injecta TimeDelta (necessário para cálculos) e DIR/DPR (para visualização)
+                df_full = merge_shortages(df_full, df_shortages)
+
+                # Guardar data da consulta para o banner
+                # Procurar a coluna no df_shortages original (merge_shortages a dropa)
+                if "Data da Consulta" in df_shortages.columns:
+                    state.shortages_data_consulta = str(df_shortages["Data da Consulta"].iloc[0])
+    except Exception:
+        logger.exception("Falha ao integrar BD de Rupturas")
+
     state.df_raw = df_full
 
     # 3. Build master products + brands
