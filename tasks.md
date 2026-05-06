@@ -347,7 +347,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-11 — Infoprex parser (core)
+### TASK-11 — [x] Infoprex parser (core)
 **Objectivo:** Implementar o parser completo de ficheiros Infoprex conforme pipeline §5.1.1 (15 passos).
 **Referência PRD:** → PRD §5.1.1 a §5.1.10, §4.1.1, §4.3.1
 **Bloqueado por:** TASK-05, TASK-07, TASK-09, TASK-10
@@ -358,21 +358,21 @@ class FileError(NamedTuple):
   - Pipeline de 15 passos em ordem obrigatória (§5.1.1).
   - Devolve DataFrame conforme `InfoprexRowSchema` + metadata `FileInventoryEntry`.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_infoprex_parser.py`:
-  - [ ] Parsing completo com fixture mini (3 produtos × 2 lojas × 15 meses).
-  - [ ] Falta de `CPR` → `InfoprexSchemaError`.
-  - [ ] Falta de `DUV` → `InfoprexSchemaError`.
-  - [ ] Múltiplas localizações → filtra pela com `DUV.max()`.
-  - [ ] 15 meses com colisão de nomes → sufixos `.1`, `.2` correctos.
-  - [ ] Filtro TXT prioritário (ignora CLA quando TXT presente).
-  - [ ] Filtro CLA quando TXT ausente.
-  - [ ] Sem filtros → devolve tudo.
-  - [ ] Códigos começados por `'1'` **não** são dropados aqui (feito em aggregator §5.1.10).
-  - [ ] `CÓDIGO` não-numérico → colectado em lista de inválidos, continuação.
-  - [ ] Colunas renomeadas: `CPR→CÓDIGO`, `NOM→DESIGNAÇÃO`, `SAC→STOCK`, `PCU→P.CUSTO`.
-  - [ ] `T Uni` calculado = soma das colunas de vendas.
-  - [ ] `FileInventoryEntry` preenchido correctamente (filename, farmácia, linhas, data_max).
-  - [ ] Idempotência: parser duas vezes → DataFrames idênticos.
+- [x] Teste `tests/unit/test_infoprex_parser.py`:
+  - [x] Parsing completo com fixture mini (3 produtos × 2 lojas × 15 meses).
+  - [x] Falta de `CPR` → `InfoprexSchemaError`.
+  - [x] Falta de `DUV` → `InfoprexSchemaError`.
+  - [x] Múltiplas localizações → filtra pela com `DUV.max()`.
+  - [x] 15 meses com colisão de nomes → sufixos `.1`, `.2` correctos.
+  - [x] Filtro TXT prioritário (ignora CLA quando TXT presente).
+  - [x] Filtro CLA quando TXT ausente.
+  - [x] Sem filtros → devolve tudo.
+  - [x] Códigos começados por `'1'` **não** são dropados aqui (feito em aggregator §5.1.10).
+  - [x] `CÓDIGO` não-numérico → colectado em lista de inválidos, continuação.
+  - [x] Colunas renomeadas: `CPR→CÓDIGO`, `NOM→DESIGNAÇÃO`, `SAC→STOCK`, `PCU→P.CUSTO`.
+  - [x] `T Uni` calculado = soma das colunas de vendas.
+  - [x] `FileInventoryEntry` preenchido correctamente (filename, farmácia, linhas, data_max).
+  - [x] Idempotência: parser duas vezes → DataFrames idênticos.
 **Notas de Implementação:**
 - Usar `dateutil.relativedelta` para cálculo de meses (mais robusto em fronteiras de ano que `pd.DateOffset`).
 - Colunas-alvo para `usecols`: `['CPR', 'NOM', 'LOCALIZACAO', 'SAC', 'PVP', 'PCU', 'DUC', 'DTVAL', 'CLA', 'DUV'] + ['V0'...'V14']`.
