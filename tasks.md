@@ -407,7 +407,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-13 — Recolha tipada de erros e File Inventory
+### [x] TASK-13 — Recolha tipada de erros e File Inventory
 **Objectivo:** Implementar o padrão de recolha de erros por ficheiro (não-abortiva) e popular `FileInventoryEntry` por cada ficheiro processado.
 **Referência PRD:** → PRD §5.6.2, §8.8, ADR-007
 **Bloqueado por:** TASK-03, TASK-08, TASK-11
@@ -420,12 +420,12 @@ class FileError(NamedTuple):
 - `FileInventoryEntry` populado para cada ficheiro (ok ou erro).
 - Erros acumulados em `state.file_errors`, inventário em `state.file_inventory`.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_session_service.py`:
-  - [ ] 3 ficheiros válidos + 1 corrompido → 3 DataFrames + 1 `FileError`.
-  - [ ] Erros tipados (encoding vs schema) correctamente classificados.
-  - [ ] `FileInventoryEntry` com status `"error"` para ficheiros falhados.
-  - [ ] `FileInventoryEntry` com status `"ok"` e dados preenchidos para ficheiros válidos.
-  - [ ] Processamento dos 3 ficheiros válidos não é afectado pelo corrompido.
+- [x] Teste `tests/unit/test_session_service.py`:
+  - [x] 3 ficheiros válidos + 1 corrompido → 3 DataFrames + 1 `FileError`.
+  - [x] Erros tipados (encoding vs schema) correctamente classificados.
+  - [x] `FileInventoryEntry` com status `"error"` para ficheiros falhados.
+  - [x] `FileInventoryEntry` com status `"ok"` e dados preenchidos para ficheiros válidos.
+  - [x] Processamento dos 3 ficheiros válidos não é afectado pelo corrompido.
 **Notas de Implementação:**
 - Nunca usar bare `except:` — sempre `except Exception as e:` no nível mais exterior (ADR-014).
 - `logger.exception(...)` para stack trace completo no log.

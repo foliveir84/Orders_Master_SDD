@@ -8,15 +8,15 @@ O projecto segue uma arquitectura em camadas com separação estrita entre domí
 graph TD
     A[Presentation Layer<br/>app.py, ui/] --> B[Application Layer<br/>app_services/]
     B --> C[Domain Layer<br/>orders_master/]
-    
+
     subgraph UI [Interface do Utilizador]
     A
     end
-    
+
     subgraph Application [Coordenação]
     B
     end
-    
+
     subgraph Domain [Regras de Negócio]
     C
     end
@@ -36,7 +36,7 @@ sequenceDiagram
     participant Ingestion as Domain/Ingestion
     participant Agg as Domain/Aggregation
     participant Logic as Domain/Business Logic
-    
+
     UI->>App: Submissão de ficheiros Infoprex
     App->>Ingestion: parse_infoprex_file()
     Ingestion-->>App: DataFrame limpo + validações

@@ -32,7 +32,7 @@ repos:
         entry: Cannot commit secrets.toml or .env files
         language: fail
         files: '(\.env|secrets\.toml)$'
-        
+
       - id: forbid-print
         name: Forbid print() in domain
         entry: 'print\s*\('
