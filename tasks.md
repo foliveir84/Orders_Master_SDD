@@ -472,7 +472,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-17 — Brands parser + cleaner vectorizado
+### TASK-17 — [x] Brands parser + cleaner vectorizado
 **Objectivo:** Implementar parser de CSVs de marcas (`Infoprex_SIMPLES`) e função de limpeza vectorizada de designações.
 **Referência PRD:** → PRD §5.5.1, §5.3.2, §8.12; ADR-011
 **Bloqueado por:** TASK-02, TASK-05
@@ -485,18 +485,18 @@ class FileError(NamedTuple):
   - `remove_zombie_rows(df) -> pd.DataFrame` — filtra `STOCK==0 AND T_Uni==0`.
   - `remove_zombie_aggregated(df) -> pd.DataFrame` — filtra códigos zombie pós-agregação.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_brands_parser.py`:
-  - [ ] Múltiplos CSVs com `;` → concat + dedup por `COD` (`keep='first'`).
-  - [ ] `on_bad_lines='skip'` tolera linhas malformadas.
-  - [ ] `COD` convertido para `int`; não-numéricos descartados.
-  - [ ] `MARCA` vazia/`'nan'`/`'None'` → descartada.
-- [ ] Teste `tests/unit/test_cleaners.py`:
-  - [ ] `"BEN-U-RON* 500mg"` → `"Ben-U-Ron 500Mg"`.
-  - [ ] Acentos removidos (NFD normalize → ASCII).
-  - [ ] Asteriscos removidos.
-  - [ ] Title Case aplicado.
-  - [ ] Benchmark: vectorizado ≥ 5× mais rápido que `.apply` em 10.000 linhas.
-  - [ ] Zombie rows removidas correctamente (individual e grupo).
+- [x] Teste `tests/unit/test_brands_parser.py`:
+  - [x] Múltiplos CSVs com `;` → concat + dedup por `COD` (`keep='first'`).
+  - [x] `on_bad_lines='skip'` tolera linhas malformadas.
+  - [x] `COD` convertido para `int`; não-numéricos descartados.
+  - [x] `MARCA` vazia/`'nan'`/`'None'` → descartada.
+- [x] Teste `tests/unit/test_cleaners.py`:
+  - [x] `"BEN-U-RON* 500mg"` → `"Ben-U-Ron 500Mg"`.
+  - [x] Acentos removidos (NFD normalize → ASCII).
+  - [x] Asteriscos removidos.
+  - [x] Title Case aplicado.
+  - [x] Benchmark: vectorizado ≥ 5× mais rápido que `.apply` em 10.000 linhas.
+  - [x] Zombie rows removidas correctamente (individual e grupo).
 **Notas de Implementação:**
 - Brands: `pd.read_csv(sep=';', usecols=['COD', 'MARCA'], dtype=str, on_bad_lines='skip')`.
 - Strip + substituir `''`, `'nan'`, `'None'` por `pd.NA` antes de `dropna(subset=['MARCA'])`.

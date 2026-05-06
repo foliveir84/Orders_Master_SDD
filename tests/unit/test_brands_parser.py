@@ -65,10 +65,18 @@ def test_parse_brands_csv_empty_input():
 
 
 def test_parse_brands_csv_bad_lines():
-    """Verifica se tolera linhas malformadas."""
-    csv = "COD;MARCA\n1;MARCA;EXTRA\n2;OK\n"
+    """Verifica se tolera e descarta linhas malformadas ou incompletas."""
+    csv = (
+        "COD;MARCA\n"
+        "1;MARCA;EXTRA\n" # Extra colunas (ignoradas pelo usecols, mas mantida se COD/MARCA válidos)
+        "INCOMPLETO\n"    # Incompleta (será descartada pela limpeza de COD/MARCA)
+        "2;OK\n"
+    )
     f = io.StringIO(csv)
     df = parse_brands_csv([f])
     
-    assert len(df) == 1
-    assert df.iloc[0]["COD"] == 2
+    # 1;MARCA;EXTRA -> COD=1, MARCA=MARCA (VÁLIDO)
+    # INCOMPLETO -> COD=INCOMPLETO, MARCA=NaN (DESCARTADO)
+    # 2;OK -> COD=2, MARCA=OK (VÁLIDO)
+    assert len(df) == 2
+    assert set(df["COD"]) == {1, 2}
