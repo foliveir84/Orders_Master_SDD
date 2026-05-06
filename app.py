@@ -57,6 +57,7 @@ def main() -> None:
     # Sidebar — captura inputs do utilizador
     # ------------------------------------------------------------------
     selection = render_sidebar(labs_options=list(labs_config.root.keys()))
+    state = get_state()
 
     # ------------------------------------------------------------------
     # Processar Dados
@@ -64,7 +65,6 @@ def main() -> None:
     if selection.processar_clicked:
         reset_state()
         state = get_state()
-
 
         progress_bar = st.progress(0, text="A iniciar processamento...")
 
@@ -74,7 +74,7 @@ def main() -> None:
         process_orders_session(
             files=selection.infoprex_files,
             codes_file=selection.codes_file,
-            brands_files=[],  # Expandir no futuro se houver upload de marcas
+            brands_files=selection.brands_files,
             labs_selected=selection.labs_selected,
             locations_aliases=locations_aliases,
             state=state,
@@ -82,33 +82,35 @@ def main() -> None:
         )
         progress_bar.empty()
 
-        # Cálculo inicial de propostas (TASK-24)
-        if not state.df_raw.empty:
+    # ------------------------------------------------------------------
+    # Recálculo Dinâmico (TASK-24, TASK-26, TASK-28, TASK-33)
+    # ------------------------------------------------------------------
+    if not state.df_raw.empty:
+        # 1. Obter Presets/Pesos (Por agora fixos, TASK-28 virá depois)
+        presets = load_presets("config/presets.yaml")
+        weights = presets.get("Padrão", (0.4, 0.3, 0.2, 0.1))
 
-            presets = load_presets("config/presets.yaml")
-            weights = presets.get("Padrão", (0.4, 0.3, 0.2, 0.1))
+        # 2. Recalcular Vista Detalhada
+        state.df_detailed = recalculate_proposal(
+            df_detailed=state.df_raw,
+            detailed_view=True,
+            master_products=state.master_products,
+            months=1.0,  # TODO: TASK-28
+            weights=weights,
+        )
 
-            state.df_detailed = recalculate_proposal(
-                df_detailed=state.df_raw,
-                detailed_view=True,
-                master_products=state.master_products,
-                months=1.0,
-                weights=weights,
-            )
-            state.df_aggregated = recalculate_proposal(
-                df_detailed=state.df_raw,
-                detailed_view=False,
-                master_products=state.master_products,
-                months=1.0,
-                weights=weights,
-            )
-        elif not state.file_errors:
-            st.warning("Nenhum ficheiro Infoprex carregado ou processado.")
+        # 3. Recalcular Vista Agrupada
+        state.df_aggregated = recalculate_proposal(
+            df_detailed=state.df_raw,
+            detailed_view=False,
+            master_products=state.master_products,
+            months=1.0,  # TODO: TASK-28
+            weights=weights,
+        )
 
     # ------------------------------------------------------------------
     # Área principal — renderização dos resultados
     # ------------------------------------------------------------------
-    state = get_state()
     render_main(state)
 
 

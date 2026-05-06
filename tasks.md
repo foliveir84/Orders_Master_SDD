@@ -799,7 +799,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-26 — Sidebar com 4 blocos
+### [x] TASK-26 — Sidebar com 4 blocos
 **Objectivo:** Implementar `ui/sidebar.py::render_sidebar()` que devolve `SidebarSelection` tipada com os 4 blocos conforme §6.1.2.
 **Referência PRD:** → PRD §6.1.2
 **Bloqueado por:** TASK-06, TASK-25
@@ -814,10 +814,10 @@ class FileError(NamedTuple):
   - Botão: `st.button("🚀 Processar Dados", type="primary", use_container_width=True)`.
 - `SidebarSelection` dataclass em `ui/sidebar.py`.
 **Critérios de Aceitação:**
-- [ ] 4 blocos renderizados na ordem correcta com separadores.
-- [ ] `SidebarSelection` contém todos os campos necessários.
-- [ ] Texto informativo sob bloco 2: "Tem prioridade sobre Laboratórios".
-- [ ] Multiselect reflecte labs de `laboratorios.json` (cache invalidation by mtime).
+- [x] 4 blocos renderizados na ordem correcta com separadores.
+- [x] `SidebarSelection` contém todos os campos necessários.
+- [x] Texto informativo sob bloco 2: "Tem prioridade sobre Laboratórios".
+- [x] Multiselect reflecte labs de `laboratorios.json` (cache invalidation by mtime).
 **Notas de Implementação:**
 - `with st.sidebar:` para todo o conteúdo.
 - `st.markdown("---")` como separador entre blocos.

@@ -23,6 +23,7 @@ def recalculate_proposal(  # noqa: PLR0913
     months: float,
     weights: tuple[float, ...],
     use_previous_month: bool = False,
+    marcas: list[str] | None = None,
 ) -> pd.DataFrame:
     """
     Executa o pipeline de cálculo sobre os dados detalhados e agrupa conforme a vista.
@@ -34,6 +35,7 @@ def recalculate_proposal(  # noqa: PLR0913
         months: Meses de previsão para a proposta.
         weights: Pesos para a média ponderada.
         use_previous_month: Se True, ignora o mês mais recente na média.
+        marcas: Lista opcional de marcas para filtrar.
 
     Returns:
         DataFrame processado e agregado pronto para exibição.
@@ -41,10 +43,15 @@ def recalculate_proposal(  # noqa: PLR0913
     if df_detailed.empty:
         return df_detailed.copy()
 
+    df_work = df_detailed.copy()
+
+    # 0. Filtro por Marcas (TASK-26)
+    if marcas:
+        valid_cnps = master_products[master_products[Columns.MARCA].isin(marcas)][Columns.CODIGO]
+        df_work = df_work[df_work[Columns.CODIGO].isin(valid_cnps)]
+
     # 1. Limpeza de colunas de cálculo prévias para evitar duplicados
-    df_work = df_detailed.drop(
-        columns=[Columns.MEDIA, Columns.PROPOSTA], errors="ignore"
-    ).copy()
+    df_work = df_work.drop(columns=[Columns.MEDIA, Columns.PROPOSTA], errors="ignore").copy()
 
     # 2. Média Ponderada
     # Aplicado sobre o detalhado para permitir agregação correcta posterior

@@ -61,7 +61,7 @@ def test_process_orders_session_with_codes(session_state) -> None:
         files=[infoprex_file],
         codes_file=codes_file,
         brands_files=[],
-        labs_selected=["LAB2"], # Deveria ser ignorado
+        labs_selected=["LAB2"],  # Deveria ser ignorado
         locations_aliases={},
         state=session_state,
     )
@@ -69,4 +69,3 @@ def test_process_orders_session_with_codes(session_state) -> None:
     # Apenas o produto 2001 deve estar presente
     assert len(session_state.df_raw) == 1
     assert session_state.df_raw[Columns.CODIGO].iloc[0] == 2001
-

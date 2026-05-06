@@ -51,7 +51,7 @@ def get_file_mtime(path: Path) -> float:
         return 0.0
 
 
-@st.cache_data
+@st.cache_data  # type: ignore
 def load_locations(mtime: float, path: Path = Path("config/localizacoes.json")) -> LocationsConfig:
     """
     Loads and validates localizacoes.json.

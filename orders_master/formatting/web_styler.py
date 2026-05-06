@@ -77,7 +77,7 @@ def build_styler(df: pd.DataFrame) -> "pd.io.formats.style.Styler":
             if not anomaly_idx.empty:
                 styler = styler.format(
                     formatter="⚠️ {:.2f}",
-                    subset=pd.IndexSlice[anomaly_idx, [pvp_col]],
+                    subset=pd.IndexSlice[anomaly_idx, [pvp_col]],  # type: ignore[arg-type]
                 )
 
     return styler

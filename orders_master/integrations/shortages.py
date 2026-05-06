@@ -22,7 +22,7 @@ except ImportError:
         return func
 
 
-@cache_decorator
+@cache_decorator  # type: ignore
 def fetch_shortages_db(url: str, codigos_visible: set[int] | None = None) -> pd.DataFrame:
     """
     Lê a Google Sheet de Esgotados, valida o schema e recalcula o TimeDelta.

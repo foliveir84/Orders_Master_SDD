@@ -23,7 +23,7 @@ except ImportError:
         return func
 
 
-@cache_decorator
+@cache_decorator  # type: ignore
 def fetch_donotbuy_list(url: str, aliases: dict[str, str]) -> pd.DataFrame:
     """
     Lê a Google Sheet de produtos Não Comprar, formata datas e alinha nomes de farmácia.

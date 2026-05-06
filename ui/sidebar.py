@@ -43,20 +43,21 @@ def render_sidebar(labs_options: list[str]) -> SidebarSelection:
             options=sorted(labs_options),
             help="Filtra os produtos pelos laboratórios seleccionados.",
         )
+        st.caption("Ignorado se TXT de códigos for usado")
         st.markdown("---")
 
-        # Bloco 2 — Ficheiro de Códigos CNP
+        # Bloco 2 — Ficheiro de Códigos CNP (Prioridade)
         st.markdown("### 🔢 Filtrar por Códigos")
         codes_file = st.file_uploader(
-            "Filtrar por Códigos",
+            "Filtrar por Códigos (Prioridade)",
             type=["txt"],
             help="Lista de CNPs, um por linha. Tem prioridade sobre Laboratórios.",
         )
         st.caption("Tem prioridade sobre Laboratórios")
         st.markdown("---")
 
-        # Bloco 3 — Dados Base Infoprex
-        st.markdown("### 📂 Dados Infoprex")
+        # Bloco 3 — Dados Base (Infoprex)
+        st.markdown("### 📂 Dados Base (Infoprex)")
         infoprex_files = st.file_uploader(
             "Dados Base Infoprex",
             type=["txt"],
@@ -65,14 +66,15 @@ def render_sidebar(labs_options: list[str]) -> SidebarSelection:
         )
         st.markdown("---")
 
-        # Bloco 4 — Base de Marcas
+        # Bloco 4 — Base de Marcas (Opcional)
         st.markdown("### 🏷️ Base de Marcas")
         brands_files = st.file_uploader(
-            "Base de Marcas",
+            "Base de Marcas (Opcional)",
             type=["csv"],
             accept_multiple_files=True,
             help="CSVs com colunas COD e MARCA (separador ;).",
         )
+        st.caption("Para filtrar a tabela por marca")
         st.markdown("---")
 
         # Botão de Processar

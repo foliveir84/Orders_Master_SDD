@@ -20,7 +20,11 @@ def sample_detailed_df() -> pd.DataFrame:
             Columns.DESIGNACAO: "Produto A",
             Columns.LOCALIZACAO: "FAR_A",
             Columns.STOCK: 10,
-            "V0": 10, "V1": 10, "V2": 10, "V3": 10, "V4": 10,
+            "V0": 10,
+            "V1": 10,
+            "V2": 10,
+            "V3": 10,
+            "V4": 10,
             "T Uni": 50,
             Columns.PVP: 10.0,
             Columns.P_CUSTO: 5.0,
@@ -30,7 +34,11 @@ def sample_detailed_df() -> pd.DataFrame:
             Columns.DESIGNACAO: "Produto A",
             Columns.LOCALIZACAO: "FAR_B",
             Columns.STOCK: 5,
-            "V0": 5, "V1": 5, "V2": 5, "V3": 5, "V4": 5,
+            "V0": 5,
+            "V1": 5,
+            "V2": 5,
+            "V3": 5,
+            "V4": 5,
             "T Uni": 25,
             Columns.PVP: 10.0,
             Columns.P_CUSTO: 5.0,
@@ -41,11 +49,13 @@ def sample_detailed_df() -> pd.DataFrame:
 
 @pytest.fixture
 def master_products() -> pd.DataFrame:
-    return pd.DataFrame({
-        Columns.CODIGO: [2001],
-        Columns.DESIGNACAO: ["Produto A"],
-        Columns.MARCA: ["Marca X"],
-    })
+    return pd.DataFrame(
+        {
+            Columns.CODIGO: [2001],
+            Columns.DESIGNACAO: ["Produto A"],
+            Columns.MARCA: ["Marca X"],
+        }
+    )
 
 
 def test_recalc_months_doubles_proposal(sample_detailed_df, master_products) -> None:
@@ -108,3 +118,29 @@ def test_recalc_weights_influence(sample_detailed_df, master_products) -> None:
     res2 = recalculate_proposal(df, False, master_products, 1.0, (0, 1.0, 0, 0))
     # Loja A: 10, Loja B: 5 -> Total 15
     assert res2[Columns.MEDIA].iloc[0] == 15
+
+
+def test_recalc_brand_filtering(sample_detailed_df) -> None:
+    """Verifica que o filtro por marca reduz os resultados."""
+    master = pd.DataFrame(
+        {
+            Columns.CODIGO: [2001, 3001],
+            Columns.DESIGNACAO: ["Prod A", "Prod B"],
+            Columns.MARCA: ["Marca X", "Marca Y"],
+        }
+    )
+    # Adicionar produto 3001 ao detailed_df
+    row_b = sample_detailed_df.iloc[0].copy()
+    row_b[Columns.CODIGO] = 3001
+    df = pd.concat([sample_detailed_df, pd.DataFrame([row_b])], ignore_index=True)
+
+    weights = (1.0, 0, 0, 0)
+
+    # Sem filtro -> 2 produtos
+    res1 = recalculate_proposal(df, False, master, 1.0, weights)
+    assert len(res1) == 2
+
+    # Com filtro -> 1 produto
+    res2 = recalculate_proposal(df, False, master, 1.0, weights, marcas=["Marca X"])
+    assert len(res2) == 1
+    assert res2[Columns.MARCA].iloc[0] == "Marca X"
