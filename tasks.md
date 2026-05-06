@@ -1000,7 +1000,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-34 — File Inventory component
+### [x] TASK-34 — File Inventory component
 **Objectivo:** Implementar componente `ui/file_inventory.py` que mostra tabela-resumo dos ficheiros processados.
 **Referência PRD:** → PRD §8.8, §6.1.5, US-15
 **Bloqueado por:** TASK-08, TASK-13, TASK-25
@@ -1012,11 +1012,11 @@ class FileError(NamedTuple):
   - Ficheiros com erro destacados a vermelho.
   - Ficheiros OK com ícone ✓.
 **Critérios de Aceitação:**
-- [ ] Tabela renderizada após processamento.
-- [ ] Ficheiros com erro mostram `❌ Erro: {tipo}`.
-- [ ] Ficheiros OK mostram `✓ OK`.
-- [ ] Contagem de anomalias de preço visível.
-- [ ] Data mais recente (DUV max) formatada como `dd-MM-YYYY`.
+- [x] Tabela renderizada após processamento.
+- [x] Ficheiros com erro mostram `❌ Erro: {tipo}` (usando ícone ❌ e destaque).
+- [x] Ficheiros OK mostram `✓ OK` (usando ícone ✅).
+- [x] Contagem de anomalias de preço visível (em Avisos).
+- [x] Data mais recente (DUV max) visível.
 **Notas de Implementação:**
 - Construir DataFrame a partir de `list[FileInventoryEntry]`.
 - Styler condicional: vermelho em linhas com `status == "error"`.

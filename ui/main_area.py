@@ -8,6 +8,7 @@ métricas, tabela agregada/detalhada, erros e inventário de ficheiros.
 import streamlit as st
 
 from orders_master.app_services.session_state import SessionState
+from ui.file_inventory import render_file_inventory
 from ui.scope_bar import render_scope_summary
 from ui.sidebar import SidebarSelection
 
@@ -92,15 +93,7 @@ def render_main(state: SessionState, selection: SidebarSelection | None = None) 
         st.dataframe(state.df_detailed, use_container_width=True)
 
     # Inventário de ficheiros
-    if state.file_inventory:
-        with st.expander("📋 Inventário de Ficheiros", expanded=False):
-            for entry in state.file_inventory:
-                icon = "✅" if entry.status == "ok" else "❌"
-                st.markdown(
-                    f"{icon} **{entry.filename}** — {entry.farmacia} "
-                    f"| {entry.n_linhas} linhas | DUV: {entry.duv_max}"
-                    + (f" | ⚠️ {entry.avisos}" if entry.avisos else "")
-                )
+    render_file_inventory(state)
 
 
 def render_top_banner(state: SessionState) -> None:
