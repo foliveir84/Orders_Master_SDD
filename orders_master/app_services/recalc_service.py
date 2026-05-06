@@ -16,7 +16,7 @@ from orders_master.business_logic.proposals import (
 from orders_master.constants import Columns
 
 
-def recalculate_proposal(
+def recalculate_proposal(  # noqa: PLR0913
     df_detailed: pd.DataFrame,
     detailed_view: bool,
     master_products: pd.DataFrame,

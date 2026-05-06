@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from orders_master.config import validate
 from orders_master.config.labs_loader import LabsConfig, get_file_mtime, load_labs
 from orders_master.exceptions import ConfigError
 
@@ -71,12 +72,15 @@ def test_get_file_mtime_nonexistent():
 
 def test_cli_validator(temp_labs_json, monkeypatch):
     """Test the CLI validator in validate.py."""
-    from orders_master.config import validate
 
     # Test success
     # Mock sys.exit to avoid exiting the test process
     exits = []
-    monkeypatch.setattr("sys.exit", lambda code: exits.append(code))
+
+    def mock_exit(code):
+        exits.append(code)
+
+    monkeypatch.setattr("sys.exit", mock_exit)
 
     validate.validate_config(str(temp_labs_json))
     assert 0 in exits

@@ -11,6 +11,7 @@ import inspect
 import pandas as pd
 import pytest
 
+from orders_master.aggregation import aggregator
 from orders_master.aggregation.aggregator import aggregate, build_master_products
 from orders_master.constants import Columns, GroupLabels
 
@@ -295,8 +296,6 @@ def test_deterministic_sort_grouped(master: pd.DataFrame) -> None:
 
 def test_no_structural_duplication() -> None:
     """Deve existir uma única função aggregate — sem duplicação."""
-    from orders_master.aggregation import aggregator
-
     module_functions = [name for name, _ in inspect.getmembers(aggregator, inspect.isfunction)]
     assert "aggregate" in module_functions
     assert module_functions.count("aggregate") == 1

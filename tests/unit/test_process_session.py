@@ -4,7 +4,6 @@ Testes unitários para process_orders_session — TASK-23.
 
 from io import BytesIO, StringIO
 
-import pandas as pd
 import pytest
 
 from orders_master.app_services.session_service import process_orders_session
@@ -54,7 +53,7 @@ def test_process_orders_session_with_codes(session_state) -> None:
     row2 = "3001\tPROD B\tFAR1\t10\t10.0\t5.0\t100\t2026-01-01\tLAB2\t01/01/2024\t5\n"
     content = header + row1 + row2
     infoprex_file = BytesIO(content.encode("utf-8"))
-    
+
     codes_content = "2001\n"
     codes_file = BytesIO(codes_content.encode("utf-8"))
 

@@ -58,7 +58,7 @@ def get_state() -> SessionState:
     Caso contrário, devolve uma nova instância de SessionState (útil para testes).
     """
     try:
-        import streamlit as st
+        import streamlit as st  # noqa: PLC0415
 
         if "orders_master_state" not in st.session_state:
             st.session_state["orders_master_state"] = SessionState()
@@ -74,7 +74,7 @@ def get_state() -> SessionState:
 def reset_state() -> None:
     """Limpa o estado da sessão actual no Streamlit."""
     try:
-        import streamlit as st
+        import streamlit as st  # noqa: PLC0415
 
         if "orders_master_state" in st.session_state:
             del st.session_state["orders_master_state"]

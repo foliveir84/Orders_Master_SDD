@@ -100,7 +100,7 @@ def get_file_mtime(path: Path) -> float:
         return 0.0
 
 
-@st.cache_data  # type: ignore
+@st.cache_data
 def load_labs(mtime: float, path: Path = Path("config/laboratorios.json")) -> LabsConfig:
     """
     Loads and validates laboratorios.json.

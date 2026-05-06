@@ -45,7 +45,7 @@ def mock_session_state(monkeypatch):
     mock_state = MockSessionState()
 
     try:
-        import streamlit as st
+        import streamlit as st  # noqa: PLC0415
 
         monkeypatch.setattr(st, "session_state", mock_state)
     except ImportError:

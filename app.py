@@ -16,7 +16,10 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from orders_master.app_services.recalc_service import recalculate_proposal
+from orders_master.app_services.session_service import process_orders_session
 from orders_master.app_services.session_state import get_state, reset_state
+from orders_master.business_logic.averages import load_presets
 from orders_master.config.labs_loader import get_file_mtime as get_labs_mtime
 from orders_master.config.labs_loader import load_labs
 from orders_master.config.locations_loader import get_file_mtime as get_locs_mtime
@@ -62,8 +65,6 @@ def main() -> None:
         reset_state()
         state = get_state()
 
-        # Orquestrar processamento via session_service (TASK-23)
-        from orders_master.app_services.session_service import process_orders_session
 
         progress_bar = st.progress(0, text="A iniciar processamento...")
 
@@ -83,8 +84,6 @@ def main() -> None:
 
         # Cálculo inicial de propostas (TASK-24)
         if not state.df_raw.empty:
-            from orders_master.app_services.recalc_service import recalculate_proposal
-            from orders_master.business_logic.averages import load_presets
 
             presets = load_presets("config/presets.yaml")
             weights = presets.get("Padrão", (0.4, 0.3, 0.2, 0.1))

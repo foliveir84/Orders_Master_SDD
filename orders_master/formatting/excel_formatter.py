@@ -102,8 +102,7 @@ def build_excel(df: pd.DataFrame, scope_tag: str) -> tuple[bytes, str]:
         column = col[0].column_letter
         for cell in col:
             try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
+                max_length = max(max_length, len(str(cell.value)))
             except (ValueError, TypeError, AttributeError):
                 pass
         ws.column_dimensions[column].width = min(max_length + 2, 50)

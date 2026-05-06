@@ -22,7 +22,7 @@ def get_secret(key_path: str, env_var: str | None = None) -> str | None:
     """
     # 1. Try Streamlit secrets
     try:
-        import streamlit as st
+        import streamlit as st  # noqa: PLC0415
 
         # Navigate the key_path (e.g., "db.password" -> st.secrets["db"]["password"])
         value = st.secrets

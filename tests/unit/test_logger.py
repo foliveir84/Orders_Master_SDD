@@ -3,7 +3,7 @@ import unittest
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
-from orders_master.logger import SESSION_ID, configure_logging, timed
+from orders_master.logger import SESSION_ID, SessionFilter, configure_logging, timed
 
 
 class TestLogger(unittest.TestCase):
@@ -57,7 +57,6 @@ class TestLogger(unittest.TestCase):
                 self.records.append(record)
 
         mock_handler = MockHandler()
-        from orders_master.logger import SessionFilter
 
         mock_handler.addFilter(SessionFilter())
         logger.addHandler(mock_handler)

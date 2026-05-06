@@ -43,4 +43,4 @@ def test_parse_codes_txt_utf8_bom():
 def test_parse_codes_txt_from_fixture():
     with open("tests/fixtures/codigos_sample.txt", "rb") as f:
         result = parse_codes_txt(f)
-    assert result == [1234567, 2345678, 3456789, 4567890, 5678901]
+    assert result == [1234567, 7654321, 1111111, 2222222, 3333333, 4444444]

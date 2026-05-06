@@ -1,4 +1,5 @@
 import time
+import unicodedata
 
 import numpy as np
 import pandas as pd
@@ -85,7 +86,6 @@ def test_clean_designation_performance():
     def clean_apply_logic(val):
         if val is None or pd.isna(val):
             return ""
-        import unicodedata
 
         val = str(val)
         val = unicodedata.normalize("NFD", val).encode("ascii", "ignore").decode("utf-8")
