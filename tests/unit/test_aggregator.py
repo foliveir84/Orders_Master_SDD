@@ -5,14 +5,14 @@ Cobre todos os critérios de aceitação definidos em tasks.md.
 Nota: Códigos que comecem por '1' são considerados locais e descartados (PRD §5.1.10).
       Os fixtures usam códigos que começam por '2', '3', etc.
 """
+
 import inspect
 
 import pandas as pd
 import pytest
 
-from orders_master.aggregation.aggregator import aggregate, build_master_products, reorder_columns
+from orders_master.aggregation.aggregator import aggregate, build_master_products
 from orders_master.constants import Columns, GroupLabels
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -66,9 +66,24 @@ def df_two_stores() -> pd.DataFrame:
     """Produto CODE_A em duas lojas, produto CODE_C em uma loja."""
     return make_df(
         [
-            {Columns.CODIGO: CODE_A, Columns.LOCALIZACAO: "FAR_A", Columns.STOCK: 5, Columns.T_UNI: 10},
-            {Columns.CODIGO: CODE_A, Columns.LOCALIZACAO: "FAR_B", Columns.STOCK: 3, Columns.T_UNI: 8},
-            {Columns.CODIGO: CODE_C, Columns.LOCALIZACAO: "FAR_A", Columns.STOCK: 2, Columns.T_UNI: 4},
+            {
+                Columns.CODIGO: CODE_A,
+                Columns.LOCALIZACAO: "FAR_A",
+                Columns.STOCK: 5,
+                Columns.T_UNI: 10,
+            },
+            {
+                Columns.CODIGO: CODE_A,
+                Columns.LOCALIZACAO: "FAR_B",
+                Columns.STOCK: 3,
+                Columns.T_UNI: 8,
+            },
+            {
+                Columns.CODIGO: CODE_C,
+                Columns.LOCALIZACAO: "FAR_A",
+                Columns.STOCK: 2,
+                Columns.T_UNI: 4,
+            },
         ]
     )
 
@@ -94,8 +109,18 @@ def test_grouped_pvp_medio_rounded(master: pd.DataFrame) -> None:
     """PVP_Médio deve ser a média dos PVPs (excluindo anomalias), arredondado a 2 casas."""
     df = make_df(
         [
-            {Columns.CODIGO: CODE_A, Columns.LOCALIZACAO: "A", Columns.PVP: 5.111, Columns.PRICE_ANOMALY: False},
-            {Columns.CODIGO: CODE_A, Columns.LOCALIZACAO: "B", Columns.PVP: 3.333, Columns.PRICE_ANOMALY: False},
+            {
+                Columns.CODIGO: CODE_A,
+                Columns.LOCALIZACAO: "A",
+                Columns.PVP: 5.111,
+                Columns.PRICE_ANOMALY: False,
+            },
+            {
+                Columns.CODIGO: CODE_A,
+                Columns.LOCALIZACAO: "B",
+                Columns.PVP: 3.333,
+                Columns.PRICE_ANOMALY: False,
+            },
         ]
     )
     result = aggregate(df, detailed=False, master_products=master)
@@ -125,7 +150,9 @@ def test_detailed_has_grupo_row(df_two_stores: pd.DataFrame, master: pd.DataFram
     assert len(grupo_rows) == unique_codes
 
 
-def test_detailed_n_lines_per_code_plus_grupo(df_two_stores: pd.DataFrame, master: pd.DataFrame) -> None:
+def test_detailed_n_lines_per_code_plus_grupo(
+    df_two_stores: pd.DataFrame, master: pd.DataFrame
+) -> None:
     result = aggregate(df_two_stores, detailed=True, master_products=master)
     # CODE_A: 2 stores + 1 Grupo = 3 rows
     rows_a = result[result[Columns.CODIGO] == CODE_A]

@@ -556,7 +556,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-20 — Proposta base
+### [x] TASK-20 — Proposta base
 **Objectivo:** Implementar fórmula base de proposta: `round(Media × Meses_Previsão − STOCK)`.
 **Referência PRD:** → PRD §5.4.3
 **Bloqueado por:** TASK-05, TASK-21
@@ -567,11 +567,11 @@ class FileError(NamedTuple):
   - `Proposta = round(Media × meses_previsao − STOCK)`.
   - Proposta pode ser negativa (stock excedente — decisão explícita ao utilizador).
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_proposals.py`:
-  - [ ] Media=10, Meses=2, Stock=5 → Proposta=15.
-  - [ ] Media=10, Meses=1, Stock=15 → Proposta=-5 (negativo mantido).
-  - [ ] Media=0, Meses=3, Stock=0 → Proposta=0.
-  - [ ] Proposta é `int` (arredondada).
+- [x] Teste `tests/unit/test_proposals.py`:
+  - [x] Media=10, Meses=2, Stock=5 → Proposta=15.
+  - [x] Media=10, Meses=1, Stock=15 → Proposta=-5 (negativo mantido).
+  - [x] Media=0, Meses=3, Stock=0 → Proposta=0.
+  - [x] Proposta é `int` (arredondada).
 **Notas de Implementação:**
 - `df['Proposta'] = (df['Media'] * meses_previsao - df['STOCK']).round(0).astype(int)`.
 - Não clamp a zero — negativo é informação valiosa para o utilizador.

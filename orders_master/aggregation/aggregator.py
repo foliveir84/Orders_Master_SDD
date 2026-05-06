@@ -4,6 +4,7 @@ Motor de agregação único — TASK-14.
 Implementa a função ``aggregate`` que produz tanto a vista agrupada como a
 detalhada a partir de um DataFrame pós-ingestão, seguindo os 10 passos do PRD §5.3.3.
 """
+
 import pandas as pd
 
 from orders_master.business_logic.cleaners import (
@@ -12,7 +13,6 @@ from orders_master.business_logic.cleaners import (
     remove_zombie_rows,
 )
 from orders_master.constants import Columns, GroupLabels
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -93,8 +93,8 @@ def reorder_columns(df: pd.DataFrame, detailed: bool) -> pd.DataFrame:
     ]
 
     priority = priority_detailed if detailed else priority_grouped
-    existing_priority = [c for c in priority if c in df.columns]
-    remaining = [c for c in df.columns if c not in existing_priority]
+    existing_priority: list[str] = [str(c) for c in priority if c in df.columns]
+    remaining: list[str] = [str(c) for c in df.columns if c not in existing_priority]
     return df[existing_priority + remaining]
 
 
@@ -225,9 +225,7 @@ def aggregate(
     if detailed:
         group_agg_cols = [Columns.STOCK, Columns.T_UNI] + sales_cols
         group_agg_cols_present = [c for c in group_agg_cols if c in df_agg.columns]
-        df_group_rows = df_agg.groupby(Columns.CODIGO, as_index=False)[
-            group_agg_cols_present
-        ].sum()
+        df_group_rows = df_agg.groupby(Columns.CODIGO, as_index=False)[group_agg_cols_present].sum()
 
         # Preencher campos da linha Grupo
         df_group_rows[Columns.LOCALIZACAO] = GroupLabels.GROUP_ROW
@@ -246,9 +244,9 @@ def aggregate(
     # Passo 8 — Calcular _sort_key (0 = detalhe, 1 = Grupo)
     # ------------------------------------------------------------------
     if detailed and Columns.LOCALIZACAO in df_agg.columns:
-        df_agg[Columns.SORT_KEY] = (
-            df_agg[Columns.LOCALIZACAO] == GroupLabels.GROUP_ROW
-        ).astype(int)
+        df_agg[Columns.SORT_KEY] = (df_agg[Columns.LOCALIZACAO] == GroupLabels.GROUP_ROW).astype(
+            int
+        )
     else:
         df_agg[Columns.SORT_KEY] = 0
 
