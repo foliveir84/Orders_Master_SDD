@@ -437,7 +437,7 @@ class FileError(NamedTuple):
 
 ## FASE 3 — Agregação e Lógica de Negócio
 
-### TASK-14 — Motor de agregação único
+### [x] TASK-14 — Motor de agregação único
 **Objectivo:** Implementar função única `aggregate(df, detailed, master_products)` que produz tanto a vista agrupada como a detalhada, eliminando duplicação do original.
 **Referência PRD:** → PRD §5.3.3, §8.3, §8.18; ADR-003, ADR-008
 **Bloqueado por:** TASK-05, TASK-17, TASK-19
@@ -450,18 +450,18 @@ class FileError(NamedTuple):
 - Pipeline conforme §5.3.3 (10 passos).
 - Descarte de códigos locais (prefixo `'1'`) no passo inicial (§5.1.10).
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_aggregator.py`:
-  - [ ] Vista agrupada: 1 linha por `CÓDIGO`, vendas somadas, `PVP_Médio` e `P.CUSTO_Médio` arredondados a 2 casas.
-  - [ ] Vista detalhada: N linhas por `CÓDIGO` (uma por loja) + 1 linha `'Grupo'`.
-  - [ ] Filtro anti-zombies individual e grupo aplicado.
-  - [ ] `_sort_key` correcto: `0` para detalhe, `1` para `Grupo`.
-  - [ ] Ordenação determinística: `[DESIGNAÇÃO, CÓDIGO, _sort_key, LOCALIZACAO]`.
-  - [ ] Linha `Grupo` sempre em último dentro de cada `CÓDIGO`.
-  - [ ] Linhas com `price_anomaly=True` excluídas do cálculo de médias PVP/P.CUSTO.
-  - [ ] Merge com `master_products` injecta designação canónica e MARCA.
-  - [ ] `PVP` renomeado para `PVP_Médio`; `P.CUSTO` para `P.CUSTO_Médio` (só agrupada).
-  - [ ] Códigos começados por `'1'` descartados.
-- [ ] Zero duplicação estrutural — só existe uma função `aggregate`.
+- [x] Teste `tests/unit/test_aggregator.py`:
+  - [x] Vista agrupada: 1 linha por `CÓDIGO`, vendas somadas, `PVP_Médio` e `P.CUSTO_Médio` arredondados a 2 casas.
+  - [x] Vista detalhada: N linhas por `CÓDIGO` (uma por loja) + 1 linha `'Grupo'`.
+  - [x] Filtro anti-zombies individual e grupo aplicado.
+  - [x] `_sort_key` correcto: `0` para detalhe, `1` para `Grupo`.
+  - [x] Ordenação determinística: `[DESIGNAÇÃO, CÓDIGO, _sort_key, LOCALIZACAO]`.
+  - [x] Linha `Grupo` sempre em último dentro de cada `CÓDIGO`.
+  - [x] Linhas com `price_anomaly=True` excluídas do cálculo de médias PVP/P.CUSTO.
+  - [x] Merge com `master_products` injecta designação canónica e MARCA.
+  - [x] `PVP` renomeado para `PVP_Médio`; `P.CUSTO` para `P.CUSTO_Médio` (só agrupada).
+  - [x] Códigos começados por `'1'` descartados.
+- [x] Zero duplicação estrutural — só existe uma função `aggregate`.
 **Notas de Implementação:**
 - `group_keys = ['CÓDIGO', 'LOCALIZACAO'] if detailed else ['CÓDIGO']`.
 - Médias de preços calculadas em `df_valid = df[~df['price_anomaly']]`.

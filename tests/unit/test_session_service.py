@@ -1,8 +1,6 @@
 import io
 from typing import Any
 
-import pytest
-
 from orders_master.app_services.session_service import load_infoprex_files
 from orders_master.app_services.session_state import SessionState
 
@@ -35,15 +33,18 @@ def test_load_infoprex_files_success_and_errors() -> None:
     files = [file1, file2, file3, file4]
 
     from unittest.mock import patch
+
     from orders_master.exceptions import InfoprexEncodingError
 
     with patch("orders_master.app_services.session_service.parse_infoprex_file") as mock_parse:
+
         def side_effect(file_like, *args, **kwargs):
             if getattr(file_like, "name", "") == "file3.txt":
                 raise InfoprexEncodingError("Encoding falhou")
             from orders_master.ingestion.infoprex_parser import parse_infoprex_file
+
             return parse_infoprex_file(file_like, *args, **kwargs)
-        
+
         mock_parse.side_effect = side_effect
 
         dfs = load_infoprex_files(
