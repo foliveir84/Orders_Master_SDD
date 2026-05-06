@@ -1134,7 +1134,7 @@ class FileError(NamedTuple):
 
 ## FASE 7 — Testes, CI e Docs
 
-### TASK-35 — Fixtures de teste (CSVs minimalistas)
+### TASK-35 — [x] Fixtures de teste (CSVs minimalistas)
 **Objectivo:** Criar ficheiros de fixture minimalistas para testes unitários e de integração.
 **Referência PRD:** → PRD §8.13, §3.4 (tests/fixtures/)
 **Bloqueado por:** TASK-02
@@ -1147,10 +1147,10 @@ class FileError(NamedTuple):
 - `tests/fixtures/donotbuy_sample.xlsx` — 3 entries `(CNP, FARMACIA, DATA)`.
 - `tests/conftest.py` — fixtures pytest partilhadas (load fixture helpers, mock `st.session_state`).
 **Critérios de Aceitação:**
-- [ ] Cada fixture é minimalista (< 50 linhas) mas cobre os cenários necessários.
-- [ ] `infoprex_mini.txt` contém: pelo menos 2 localizações, códigos válidos e 1 código local (começa por `'1'`), valores de stock e vendas variados.
-- [ ] `conftest.py` tem fixture `sample_infoprex_df` que devolve DataFrame já parsed.
-- [ ] Fixtures são determinísticas (mesmos dados sempre).
+- [x] Cada fixture é minimalista (< 50 linhas) mas cobre os cenários necessários.
+- [x] `infoprex_mini.txt` contém: pelo menos 2 localizações, códigos válidos e 1 código local (começa por `'1'`), valores de stock e vendas variados.
+- [x] `conftest.py` tem fixture `sample_infoprex_df` que devolve DataFrame já parsed.
+- [x] Fixtures são determinísticas (mesmos dados sempre).
 **Notas de Implementação:**
 - UTF-16 com BOM para `infoprex_mini.txt` (simula export real do Sifarma).
 - `shortages_sample.xlsx` e `donotbuy_sample.xlsx` criados via openpyxl (ou commitados como binários).
