@@ -5,6 +5,8 @@ Implementa ``recalculate_proposal`` que permite actualizar as propostas
 sem re-processar os ficheiros originais, garantindo performance < 500ms.
 """
 
+from typing import Any
+
 import pandas as pd
 
 from orders_master.aggregation.aggregator import aggregate
@@ -24,6 +26,7 @@ def recalculate_proposal(  # noqa: PLR0913
     weights: tuple[float, ...],
     use_previous_month: bool = False,
     marcas: list[str] | None = None,
+    scope_context: Any | None = None,
 ) -> pd.DataFrame:
     """
     Executa o pipeline de cálculo sobre os dados detalhados e agrupa conforme a vista.
@@ -36,6 +39,7 @@ def recalculate_proposal(  # noqa: PLR0913
         weights: Pesos para a média ponderada.
         use_previous_month: Se True, ignora o mês mais recente na média.
         marcas: Lista opcional de marcas para filtrar.
+        scope_context: Objecto ScopeContext para actualizar métricas na UI.
 
     Returns:
         DataFrame processado e agregado pronto para exibição.
@@ -65,4 +69,34 @@ def recalculate_proposal(  # noqa: PLR0913
 
     # 4. Agregação Final (Passos 1-10 do motor de agregação)
     # Nota: aggregator.py foi actualizado para somar MEDIA e PROPOSTA
-    return aggregate(df_work, detailed_view, master_products)
+    df_agg = aggregate(df_work, detailed_view, master_products)
+
+    # 5. Actualizar ScopeContext (TASK-33)
+    if scope_context is not None:
+        from orders_master.constants import GroupLabels
+
+        # Contagem de produtos (excluir linhas 'Grupo' se vista detalhada)
+        if detailed_view and Columns.LOCALIZACAO in df_agg.columns:
+            scope_context.n_produtos = len(
+                df_agg[df_agg[Columns.LOCALIZACAO] != GroupLabels.GROUP_ROW]
+            )
+        else:
+            scope_context.n_produtos = len(df_agg)
+
+        scope_context.n_farmacias = df_work[Columns.LOCALIZACAO].nunique()
+        scope_context.meses = months
+        scope_context.modo = "Detalhada" if detailed_view else "Agrupada"
+
+        # Identificar janela de meses (PRD §5.4.2)
+        if Columns.T_UNI in df_work.columns:
+            idx_loc = df_work.columns.get_loc(Columns.T_UNI)
+            if isinstance(idx_loc, int):
+                offset = 2 if use_previous_month else 1
+                first_idx = idx_loc - offset - 3
+                last_idx = idx_loc - offset
+
+                if first_idx >= 0 and last_idx < len(df_work.columns):
+                    scope_context.primeiro_mes = str(df_work.columns[first_idx])
+                    scope_context.ultimo_mes = str(df_work.columns[last_idx])
+
+    return df_agg

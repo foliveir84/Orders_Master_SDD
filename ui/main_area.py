@@ -8,6 +8,7 @@ métricas, tabela agregada/detalhada, erros e inventário de ficheiros.
 import streamlit as st
 
 from orders_master.app_services.session_state import SessionState
+from ui.scope_bar import render_scope_summary
 from ui.sidebar import SidebarSelection
 
 
@@ -26,6 +27,12 @@ def render_main(state: SessionState, selection: SidebarSelection | None = None) 
     # ------------------------------------------------------------------
     render_top_banner(state)
     render_documentation_expander()
+
+    # ------------------------------------------------------------------
+    # TASK-33: Scope Summary Bar (US-14, §8.7)
+    # ------------------------------------------------------------------
+    if not state.df_raw.empty:
+        render_scope_summary(state)
 
     # ------------------------------------------------------------------
     # TASK-28: Detecção de filtros obsoletos

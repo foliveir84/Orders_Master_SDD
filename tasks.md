@@ -976,7 +976,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-33 — Scope Summary Bar
+### [x] TASK-33 — Scope Summary Bar
 **Objectivo:** Implementar componente `ui/scope_bar.py` que mostra contexto do filtro activo em barra horizontal.
 **Referência PRD:** → PRD §8.7, §6.1.4, US-14
 **Bloqueado por:** TASK-08, TASK-25
@@ -988,11 +988,11 @@ class FileError(NamedTuple):
   - Fundo gradiente subtil (`#f5f7fa → #c3cfe2`), padding 12px.
   - Actualiza em tempo real (a cada rerun).
 **Critérios de Aceitação:**
-- [ ] Visível após processamento.
-- [ ] Informação correcta: n_produtos, n_farmacias, filtro, janela, preset, meses, modo.
-- [ ] Actualiza quando toggle/slider muda.
-- [ ] Filtro por TXT → mostra `"Lista TXT (N códigos)"`.
-- [ ] Filtro por labs → mostra `"Laboratórios: [Lab1, Lab2]"`.
+- [x] Visível após processamento.
+- [x] Informação correcta: n_produtos, n_farmacias, filtro, janela, preset, meses, modo.
+- [x] Actualiza quando toggle/slider muda.
+- [x] Filtro por TXT → mostra `"Lista TXT (N códigos)"`.
+- [x] Filtro por labs → mostra `"Laboratórios: [Lab1, Lab2]"`.
 **Notas de Implementação:**
 - `ScopeContext` populado em `session_service` e actualizado em `recalc_service`.
 - `st.markdown(html, unsafe_allow_html=True)` para estilização.

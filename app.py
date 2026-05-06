@@ -97,6 +97,7 @@ def main() -> None:
             master_products=state.master_products,
             months=1.0,  # TODO: TASK-28
             weights=weights,
+            scope_context=state.scope_context,
         )
 
         # 3. Recalcular Vista Agrupada
@@ -106,6 +107,7 @@ def main() -> None:
             master_products=state.master_products,
             months=1.0,  # TODO: TASK-28
             weights=weights,
+            scope_context=state.scope_context,
         )
 
     # ------------------------------------------------------------------

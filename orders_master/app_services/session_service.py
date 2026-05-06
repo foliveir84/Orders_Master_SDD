@@ -82,6 +82,17 @@ def process_orders_session(  # noqa: PLR0913
     # 5. Guardar master products para recálculos futuros
     state.master_products = master
 
+    # 6. Popular ScopeContext inicial (TASK-33)
+    state.scope_context.n_produtos = len(state.df_aggregated)
+    state.scope_context.n_farmacias = df_full[Columns.LOCALIZACAO].nunique()
+
+    if codes_file:
+        state.scope_context.descricao_filtro = f"Lista TXT ({len(lista_codigos)} códigos)"
+    elif labs_selected:
+        state.scope_context.descricao_filtro = f"Laboratórios: {', '.join(labs_selected)}"
+    else:
+        state.scope_context.descricao_filtro = "Sem filtros (Todos)"
+
 
 def load_infoprex_files(  # noqa: PLR0913
     files: list[Any],
