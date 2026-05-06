@@ -1027,7 +1027,7 @@ class FileError(NamedTuple):
 
 ## FASE 6 — Formatação e Exportação
 
-### TASK-40 — `formatting/rules.py` (SSOT)
+### TASK-40 — [x] `formatting/rules.py` (SSOT)
 **Objectivo:** Criar fonte única de verdade (SSOT) para regras de formatação condicional consumida por web_styler e excel_formatter.
 **Referência PRD:** → PRD §6.1.6, §6.3.6; ADR-003
 **Bloqueado por:** TASK-05
@@ -1042,11 +1042,11 @@ class FileError(NamedTuple):
     4. **Validade Curta** (precedência 4): `DTVAL ≤ 4 meses` → fundo laranja `#FFA500`, bold. Apenas `DTVAL`.
     5. **Preço Anómalo** (precedência 5): `price_anomaly == True` → ícone `⚠️` + tooltip. Apenas `PVP_Médio`.
 **Critérios de Aceitação:**
-- [ ] Todas as 5 regras definidas com predicados, targets e cores.
-- [ ] Precedência: Grupo > Não Comprar > Rutura > Validade > Preço.
-- [ ] Regra Grupo aplica-se a toda a linha — as outras não entram.
-- [ ] `HighlightRule` contém representações abstractas (CSS string + openpyxl objects).
-- [ ] Acrescentar uma regra nova = editar apenas este ficheiro.
+- [x] Todas as 5 regras definidas com predicados, targets e cores.
+- [x] Precedência: Grupo > Não Comprar > Rutura > Validade > Preço.
+- [x] Regra Grupo aplica-se a toda a linha — as outras não entram.
+- [x] `HighlightRule` contém representações abstractas (CSS string + openpyxl objects).
+- [x] Acrescentar uma regra nova = editar apenas este ficheiro.
 **Notas de Implementação:**
 - `predicate: Callable[[pd.Series], bool]` — recebe uma linha e devolve bool.
 - `target_cells: Callable[[pd.DataFrame], list[str]]` — devolve nomes de colunas a pintar.
