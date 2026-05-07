@@ -68,10 +68,18 @@ def render_main(
     col_t1, col_t2 = st.columns(2)
     with col_t1:
         # 8. Toggle "Ver Detalhe de Sell Out?"
-        detailed_view = st.toggle("Ver Detalhe de Sell Out (por farmácia)?", value=False)
+        detailed_view = st.toggle(
+            "Ver Detalhe de Sell Out (por farmácia)?", 
+            value=False,
+            key="detailed_view_toggle"
+        )
     with col_t2:
         # 9. Toggle "Média com base no mês ANTERIOR?"
-        use_previous_month = st.toggle("Ignorar mês corrente na média?", value=True)
+        use_previous_month = st.toggle(
+            "Ignorar mês corrente na média?", 
+            value=True,
+            key="use_prev_month_toggle"
+        )
 
     col_m1, col_m2 = st.columns(2)
     with col_m1:
@@ -82,6 +90,7 @@ def render_main(
             max_value=6.0,
             value=1.0,
             step=0.1,
+            key="months_input",
             help="Número de meses de stock pretendido para a proposta.",
         )
     with col_m2:
@@ -110,11 +119,10 @@ def render_main(
     if not df_final.empty:
         styler = build_styler(df_final)
         
-        # Colunas a esconder (técnicas/auxiliares)
+        # Colunas a esconder (apenas técnicas puras)
         hide_cols = [
-            Columns.DIR, Columns.DPR, Columns.DATA_OBS, 
             Columns.TIME_DELTA, Columns.PRICE_ANOMALY, 
-            Columns.SORT_KEY, Columns.CLA
+            Columns.SORT_KEY, Columns.CLA, "CÓDIGO_STR", Columns.MEDIA, Columns.MARCA
         ]
         column_config = {col: None for col in hide_cols if col in df_final.columns}
 

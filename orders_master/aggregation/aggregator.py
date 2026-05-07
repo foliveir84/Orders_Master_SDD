@@ -59,56 +59,49 @@ def build_master_products(
 
 def reorder_columns(df: pd.DataFrame, detailed: bool) -> pd.DataFrame:
     """
-    Reordena as colunas do DataFrame conforme a vista.
-
-    Args:
-        df: DataFrame agregado.
-        detailed: Se True, inclui colunas de detalhe (DUC, DTVAL, LOCALIZACAO).
-
-    Returns:
-        DataFrame com colunas reordenadas.
+    Reordena as colunas do DataFrame conforme a vista solicitada.
+    Ordem: CÓDIGO, DESIGNAÇÃO, LOCALIZACAO, PVP_Médio, P.CUSTO, DUC, DTVAL, STOCK, [Meses], T Uni, Proposta, DIR, DPR, DATA_OBS
     """
-    # Colunas que vêm obrigatoriamente ANTES dos meses dinâmicos
-    before_months_grouped = [
+    # 1. Definir blocos de colunas estáticas
+    before_months = [
         Columns.CODIGO,
         Columns.DESIGNACAO,
-        Columns.MARCA,
-        Columns.PVP_MEDIO,
-        Columns.P_CUSTO_MEDIO,
-    ]
-    before_months_detailed = [
-        Columns.CODIGO,
-        Columns.DESIGNACAO,
-        Columns.MARCA,
         Columns.LOCALIZACAO,
-        Columns.PVP,
-        Columns.P_CUSTO,
+        "PVP_Médio",
+        "P.CUSTO",
         Columns.DUC,
         Columns.DTVAL,
+        Columns.STOCK,
     ]
-
-    # Colunas que vêm obrigatoriamente DEPOIS dos meses dinâmicos
+    
     after_months = [
         Columns.T_UNI,
-        Columns.STOCK,
-        Columns.MEDIA,
         Columns.PROPOSTA,
         Columns.DIR,
         Columns.DPR,
         Columns.DATA_OBS,
-        Columns.SORT_KEY,
     ]
 
-    before = before_months_detailed if detailed else before_months_grouped
-    existing_before: list[str] = [str(c) for c in before if c in df.columns]
-    existing_after: list[str] = [str(c) for c in after_months if c in df.columns]
-
-    # Meses dinâmicos são os que não estão em 'before' nem em 'after'
-    months: list[str] = [
-        str(c) for c in df.columns if c not in existing_before and c not in existing_after
+    # 2. Identificar colunas presentes
+    existing_before = [c for c in before_months if c in df.columns]
+    existing_after = [c for c in after_months if c in df.columns]
+    
+    # 3. Meses dinâmicos são os que não estão nos blocos estáticos nem são colunas técnicas
+    tech_cols = {Columns.SORT_KEY, Columns.CLA, "CÓDIGO_STR", "price_anomaly", Columns.MEDIA, Columns.MARCA}
+    months = [
+        c for c in df.columns 
+        if c not in existing_before 
+        and c not in existing_after 
+        and c not in tech_cols
     ]
 
-    return df[existing_before + months + existing_after]
+    # 4. Concatenar na ordem certa
+    final_order = existing_before + months + existing_after
+    
+    # Adicionar colunas técnicas ao fim (serão ocultadas na UI mas mantidas no DF)
+    final_order += [c for c in tech_cols if c in df.columns]
+
+    return df[final_order]
 
 
 # ---------------------------------------------------------------------------
@@ -281,16 +274,15 @@ def aggregate(
     df_agg = df_agg.sort_values(sort_cols_present).reset_index(drop=True)
 
     # ------------------------------------------------------------------
-    # Passo 10a — Renomear PVP/P.CUSTO para PVP_Médio/P.CUSTO_Médio (só agrupada)
+    # Passo 10a — Renomear PVP/P.CUSTO para PVP_Médio/P.CUSTO (conforme pedido)
     # ------------------------------------------------------------------
-    if not detailed:
-        rename_map = {}
-        if Columns.PVP in df_agg.columns:
-            rename_map[Columns.PVP] = Columns.PVP_MEDIO
-        if Columns.P_CUSTO in df_agg.columns:
-            rename_map[Columns.P_CUSTO] = Columns.P_CUSTO_MEDIO
-        if rename_map:
-            df_agg = df_agg.rename(columns=rename_map)
+    rename_map = {}
+    if Columns.PVP in df_agg.columns:
+        rename_map[Columns.PVP] = "PVP_Médio"
+    if Columns.P_CUSTO in df_agg.columns:
+        rename_map[Columns.P_CUSTO] = "P.CUSTO"
+    if rename_map:
+        df_agg = df_agg.rename(columns=rename_map)
 
     # ------------------------------------------------------------------
     # Passo 10b — Reordenar colunas

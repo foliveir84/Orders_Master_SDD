@@ -27,6 +27,11 @@ def render_scope_summary(state: SessionState) -> None:
     # Preset ainda é fixo por agora (Padrão), virá da TASK-29
     preset = "Padrão"
 
+    # Obter valores actuais dos widgets via session_state para sincronização (TASK-33)
+    months_val = st.session_state.get("months_input", ctx.meses)
+    is_detailed = st.session_state.get("detailed_view_toggle", (ctx.modo == "Detalhada"))
+    modo_val = "Detalhada" if is_detailed else "Agrupada"
+
     # Construção da string de métricas
     metrics = [
         f"📊 **{ctx.n_produtos}** produtos",
@@ -34,8 +39,8 @@ def render_scope_summary(state: SessionState) -> None:
         f"🎯 {ctx.descricao_filtro}",
         f"📅 Janela: {janela}",
         f"⚖️ Pesos: {preset}",
-        f"🔮 Previsão: **{ctx.meses:.1f}** m",
-        f"👁️ Modo: **{ctx.modo}**",
+        f"🔮 Previsão: **{months_val:.1f}** m",
+        f"👁️ Modo: **{modo_val}**",
     ]
 
     content = " | ".join(metrics)
