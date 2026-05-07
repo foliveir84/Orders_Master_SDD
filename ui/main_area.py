@@ -6,6 +6,7 @@ banner, expanders, toggles, tabela formatada e exportação.
 """
 
 import streamlit as st
+from typing import Any
 
 from orders_master.app_services.recalc_service import recalculate_proposal
 from orders_master.app_services.session_state import SessionState
