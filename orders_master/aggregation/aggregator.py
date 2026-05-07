@@ -202,12 +202,15 @@ def aggregate(
     agg_cols = [Columns.STOCK, Columns.T_UNI, Columns.MEDIA, Columns.PROPOSTA] + sales_cols
     agg_cols_present = [c for c in agg_cols if c in df_work.columns]
 
-    # Para detalhado, preservar DUC e DTVAL na linha de detalhe (first)
+    # Preservar metadados e colunas de integração (first)
     extra_agg: dict[str, str] = {}
-    if detailed:
-        for col in [Columns.DUC, Columns.DTVAL]:
-            if col in df_work.columns:
-                extra_agg[col] = "first"
+    cols_to_preserve = [
+        Columns.DUC, Columns.DTVAL, Columns.DIR, 
+        Columns.DPR, Columns.DATA_OBS, Columns.TIME_DELTA
+    ]
+    for col in cols_to_preserve:
+        if col in df_work.columns:
+            extra_agg[col] = "first"
 
     df_agg = df_work.groupby(group_keys, as_index=False)[agg_cols_present].sum()
 
@@ -285,7 +288,7 @@ def aggregate(
         df_agg = df_agg.rename(columns=rename_map)
 
     # ------------------------------------------------------------------
-    # Passo 10b — Reordenar colunas
+    # Passo 10b — Reordenar colunas (DEVE SER O ÚLTIMO PASSO)
     # ------------------------------------------------------------------
     df_agg = reorder_columns(df_agg, detailed)
 
