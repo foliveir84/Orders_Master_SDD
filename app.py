@@ -83,37 +83,12 @@ def main() -> None:
         progress_bar.empty()
 
     # ------------------------------------------------------------------
-    # Recálculo Dinâmico (TASK-24, TASK-26, TASK-28, TASK-33)
+    # Área principal — renderização dos resultados (TASK-27)
     # ------------------------------------------------------------------
-    if not state.df_raw.empty:
-        # 1. Obter Presets/Pesos (Por agora fixos, TASK-28 virá depois)
-        presets = load_presets("config/presets.yaml")
-        weights = presets.get("Padrão", (0.4, 0.3, 0.2, 0.1))
-
-        # 2. Recalcular Vista Detalhada
-        state.df_detailed = recalculate_proposal(
-            df_detailed=state.df_raw,
-            detailed_view=True,
-            master_products=state.master_products,
-            months=1.0,  # TODO: TASK-28
-            weights=weights,
-            scope_context=state.scope_context,
-        )
-
-        # 3. Recalcular Vista Agrupada
-        state.df_aggregated = recalculate_proposal(
-            df_detailed=state.df_raw,
-            detailed_view=False,
-            master_products=state.master_products,
-            months=1.0,  # TODO: TASK-28
-            weights=weights,
-            scope_context=state.scope_context,
-        )
-
     # ------------------------------------------------------------------
-    # Área principal — renderização dos resultados
+    # Área principal — renderização dos resultados (TASK-27)
     # ------------------------------------------------------------------
-    render_main(state, selection)
+    render_main(state, selection, labs_config)
 
 
 if __name__ == "__main__":

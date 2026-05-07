@@ -42,7 +42,7 @@ Cada tarefa segue o template:
 | 2 | [x] Ingestão e Validação | TASK-09 a TASK-13 | Parsers Infoprex + códigos TXT + marcas + encoding fallback + parallel parsing. |
 | 3 | [x] Agregação e Lógica de Negócio | TASK-14 a TASK-22 | Motor de agregação único, limpeza vectorizada, médias, propostas, validação de preços. |
 | 4 | [x] Integrações Externas | TASK-15, TASK-16 (em fase 3 pela dependência), TASK-23 a TASK-24 | Google Sheets (Esgotados + Não Comprar), cache strategy, app services. |
-| 5 | UI Streamlit | TASK-25 a TASK-34 | Sidebar, área principal, Scope Bar, File Inventory, toggles, filtros, progress bar. |
+| 5 | [x] UI Streamlit | TASK-25 a TASK-34 | Sidebar, área principal, Scope Bar, File Inventory, toggles, filtros, progress bar. |
 | 6 | Formatação e Exportação | TASK-40 a TASK-43 | Styler web, openpyxl Excel, SSOT de rules, nome dinâmico, teste de paridade. |
 | 7 | Testes e Validação | TASK-35 a TASK-39, TASK-44 a TASK-50 | Testes unitários, integração, performance, CI/CD, docs, linting. |
 
@@ -770,7 +770,7 @@ class FileError(NamedTuple):
 
 ---
 
-## FASE 5 — UI Streamlit
+## [x] FASE 5 — UI Streamlit
 
 ### [x] TASK-25 — `app.py` entry-point thin
 **Objectivo:** Criar `app.py` como entry-point fino (≤100 linhas) que configura a página, invoca `configure_logging`, e delega para `ui.sidebar` e `ui.main_area`.
@@ -826,7 +826,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-27 — Main area layout vertical
+### [x] TASK-27 — Main area layout vertical
 **Objectivo:** Implementar `ui/main_area.py::render_main(state)` com layout vertical de 14 componentes conforme §6.1.3.
 **Referência PRD:** → PRD §6.1.3, §6.1.7
 **Bloqueado por:** TASK-25, TASK-24
@@ -840,12 +840,12 @@ class FileError(NamedTuple):
   - Renderização da tabela via `build_styler(df_final)`.
   - Botão download via `build_excel(df_final, scope_tag)`.
 **Critérios de Aceitação:**
-- [ ] Componentes condicionais: toggles/slider só visíveis após processamento.
-- [ ] Toggle "Ver Detalhe" → troca entre vista agrupada e detalhada.
-- [ ] Toggle "Mês Anterior" → recalcula média.
-- [ ] Input "Meses a Prever" → recalcula proposta instantaneamente.
-- [ ] Selectbox de preset → altera pesos e recalcula.
-- [ ] Feedback textual: `"A Preparar encomenda para X.Y Meses"`.
+- [x] Componentes condicionais: toggles/slider só visíveis após processamento.
+- [x] Toggle "Ver Detalhe" → troca entre vista agrupada e detalhada.
+- [x] Toggle "Mês Anterior" → recalcula média.
+- [x] Input "Meses a Prever" → recalcula proposta instantaneamente.
+- [x] Selectbox de preset → altera pesos e recalcula.
+- [x] Feedback textual: `"A Preparar encomenda para X.Y Meses"`.
 **Notas de Implementação:**
 - Cada toggle/slider altera `st.session_state` → Streamlit rerun → `recalculate_proposal` é chamada.
 - A tabela é renderizada via `st.dataframe(styler, use_container_width=True)`.
@@ -879,7 +879,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-29 — Widget de preset de pesos + custom
+### [x] TASK-29 — Widget de preset de pesos + custom
 **Objectivo:** Implementar selectbox de presets de pesos (Conservador, Padrão, Agressivo, Custom) com expander para pesos custom.
 **Referência PRD:** → PRD §8.4, §6.1.7
 **Bloqueado por:** TASK-21, TASK-27
@@ -891,10 +891,10 @@ class FileError(NamedTuple):
   - Validação: soma == 1.0 (tolerância ±0.001). Se inválido → `st.error`.
   - Pesos passados a `recalculate_proposal()`.
 **Critérios de Aceitação:**
-- [ ] Selectbox mostra os 3 presets + Custom.
-- [ ] Mudar preset → tabela recalcula instantaneamente.
-- [ ] Custom com soma != 1.0 → erro visual + bloqueio de cálculo.
-- [ ] Custom com soma válida → cálculo funciona.
+- [x] Selectbox mostra os 3 presets + Custom.
+- [x] Mudar preset → tabela recalcula instantaneamente.
+- [x] Custom com soma != 1.0 → erro visual + bloqueio de cálculo.
+- [x] Custom com soma válida → cálculo funciona.
 **Notas de Implementação:**
 - `st.number_input` com `min_value=0.0, max_value=1.0, step=0.05`.
 - Validação: `abs(sum(custom_weights) - 1.0) < 1e-3`.
@@ -903,7 +903,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-30 — Filtro dinâmico por marca
+### [x] TASK-30 — Filtro dinâmico por marca
 **Objectivo:** Implementar multiselect de marcas com key dinâmica, opções derivadas do dataset filtrado, e preservação da linha Grupo.
 **Referência PRD:** → PRD §5.5.3, §5.5.4, §5.5.5; ADR-013
 **Bloqueado por:** TASK-17, TASK-27
@@ -916,11 +916,11 @@ class FileError(NamedTuple):
   - Filtro preserva linha `Grupo` explicitamente (ADR-013).
   - Drop de `MARCA` imediato após filtro (antes de cálculos posicionais).
 **Critérios de Aceitação:**
-- [ ] Multiselect só aparece se há marcas no dataset.
-- [ ] Todas as marcas seleccionadas por defeito.
-- [ ] Filtrar por 1 marca → tabela mostra apenas produtos dessa marca + linhas Grupo.
-- [ ] Linha Grupo preservada mesmo com filtro activo.
-- [ ] Trocar de laboratório → key muda → marcas resetam (sem "state ghost").
+- [x] Multiselect só aparece se há marcas no dataset.
+- [x] Todas as marcas seleccionadas por defeito.
+- [x] Filtrar por 1 marca → tabela mostra apenas produtos dessa marca + linhas Grupo.
+- [x] Linha Grupo preservada mesmo com filtro activo.
+- [x] Trocar de laboratório → key muda → marcas resetam (sem "state ghost").
 **Notas de Implementação:**
 - `marcas_disponiveis = sorted(df['MARCA'].dropna().unique().tolist())`.
 - Máscara: `(df['LOCALIZACAO'] == 'Grupo') | (df['MARCA'].isin(marcas_selecionadas))`.
