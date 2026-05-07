@@ -60,15 +60,16 @@ def build_master_products(
 def reorder_columns(df: pd.DataFrame, detailed: bool) -> pd.DataFrame:
     """
     Reordena as colunas do DataFrame conforme a vista solicitada.
-    Ordem: CÓDIGO, DESIGNAÇÃO, LOCALIZACAO, PVP_Médio, P.CUSTO, DUC, DTVAL, STOCK, [Meses], T Uni, Proposta, DIR, DPR, DATA_OBS
+    Ordem: CÓDIGO, DESIGNAÇÃO, LOCALIZACAO, PVP / PVP_Médio, P.CUSTO / P.CUSTO_Médio, DUC, DTVAL, STOCK, [Meses], T Uni, Proposta, DIR, DPR, DATA_OBS
     """
     # 1. Definir blocos de colunas estáticas
     before_months = [
         Columns.CODIGO,
         Columns.DESIGNACAO,
         Columns.LOCALIZACAO,
+        Columns.PVP,
         "PVP_Médio",
-        "P.CUSTO",
+        Columns.P_CUSTO,
         "P.CUSTO_Médio",
         Columns.DUC,
         Columns.DTVAL,
@@ -192,8 +193,12 @@ def aggregate(
     if price_cols_present:
         avg_prices = df_valid.groupby(group_keys_price, as_index=False)[price_cols_present].mean()
         avg_prices[price_cols_present] = avg_prices[price_cols_present].round(2)
+        
+        # Preços de fallback (caso todos os preços de um grupo sejam anómalos e df_valid fique vazio para esse grupo)
+        fallback_prices = df_work.groupby(group_keys_price, as_index=False)[price_cols_present].first()
     else:
         avg_prices = pd.DataFrame(columns=group_keys_price)
+        fallback_prices = pd.DataFrame(columns=group_keys_price)
 
     # ------------------------------------------------------------------
     # Passo 4 — Agregação (soma) de stock e vendas
@@ -207,8 +212,11 @@ def aggregate(
     extra_agg: dict[str, str] = {}
     cols_to_preserve = [
         Columns.DUC, Columns.DTVAL, Columns.DIR, 
-        Columns.DPR, Columns.DATA_OBS, Columns.TIME_DELTA
+        Columns.DPR, Columns.TIME_DELTA
     ]
+    if detailed:
+        cols_to_preserve.append(Columns.DATA_OBS)
+        
     for col in cols_to_preserve:
         if col in df_work.columns:
             extra_agg[col] = "first"
@@ -219,9 +227,21 @@ def aggregate(
         df_extra = df_work.groupby(group_keys, as_index=False).agg(extra_agg)
         df_agg = df_agg.merge(df_extra, on=group_keys, how="left")
 
-    # Merge médias de preços
-    if not avg_prices.empty and price_cols_present:
-        df_agg = df_agg.merge(avg_prices, on=group_keys_price, how="left")
+    # Merge médias de preços e fallback
+    if price_cols_present:
+        if not avg_prices.empty:
+            df_agg = df_agg.merge(avg_prices, on=group_keys_price, how="left")
+        else:
+            # Se avg_prices estiver totalmente vazio (ex: tudo anómalo), criamos as colunas com NaN para o fallback preencher
+            for col in price_cols_present:
+                df_agg[col] = pd.NA
+
+        # Fallback para repor preços caso tenham ficado NaN por causa do filtro de anomalias
+        df_agg = df_agg.set_index(group_keys_price)
+        fallback_idx = fallback_prices.set_index(group_keys_price)
+        for col in price_cols_present:
+            df_agg[col] = df_agg[col].fillna(fallback_idx[col])
+        df_agg = df_agg.reset_index()
 
     # ------------------------------------------------------------------
     # Passo 5 — Injectar master_products (designação canónica + marca)
@@ -278,13 +298,17 @@ def aggregate(
     df_agg = df_agg.sort_values(sort_cols_present).reset_index(drop=True)
 
     # ------------------------------------------------------------------
-    # Passo 10a — Renomear PVP/P.CUSTO para PVP_Médio/P.CUSTO (conforme pedido)
+    # Passo 10a — Renomear PVP/P.CUSTO (conforme pedido)
+    # Na vista detalhada, mantém-se PVP e P.CUSTO originais.
+    # Na vista agrupada, renomeia-se para PVP_Médio e P.CUSTO_Médio.
     # ------------------------------------------------------------------
     rename_map = {}
-    if Columns.PVP in df_agg.columns:
-        rename_map[Columns.PVP] = "PVP_Médio"
-    if Columns.P_CUSTO in df_agg.columns:
-        rename_map[Columns.P_CUSTO] = "P.CUSTO" if detailed else "P.CUSTO_Médio"
+    if not detailed:
+        if Columns.PVP in df_agg.columns:
+            rename_map[Columns.PVP] = "PVP_Médio"
+        if Columns.P_CUSTO in df_agg.columns:
+            rename_map[Columns.P_CUSTO] = "P.CUSTO_Médio"
+    
     if rename_map:
         df_agg = df_agg.rename(columns=rename_map)
 

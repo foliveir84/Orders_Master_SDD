@@ -239,13 +239,13 @@ def render_weights_selector() -> tuple[float, ...]:
 
 def render_brands_filter(state: SessionState, only_options: bool = False) -> list[str] | None:
     """Widget de filtro de marcas (TASK-30)."""
-    # Só faz sentido se houver marcas disponíveis no dataset filtrado actual
-    if state.df_raw.empty or Columns.MARCA not in state.df_raw.columns:
+    # Só faz sentido se houver marcas disponíveis no master_products
+    if state.master_products is None or state.master_products.empty or Columns.MARCA not in state.master_products.columns:
         return None
 
-    # Extrair marcas únicas disponíveis (ignorando NaN)
+    # Extrair marcas únicas disponíveis (ignorando strings vazias e NaN)
     available_brands = (
-        state.df_raw[state.df_raw[Columns.MARCA].notna()][Columns.MARCA]
+        state.master_products[state.master_products[Columns.MARCA].notna() & (state.master_products[Columns.MARCA] != "")][Columns.MARCA]
         .unique()
         .tolist()
     )
