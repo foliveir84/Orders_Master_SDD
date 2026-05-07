@@ -49,7 +49,7 @@ def apply_excel_rules(ws: Any, df: pd.DataFrame) -> None:
     para garantir que o mapeamento de colunas (col_map) está correcto.
     """
     # Mapeamento de nome de coluna para índice de coluna (1-based para openpyxl)
-    col_map = {col: i + 1 for i, col in enumerate(df.columns)}
+    col_map = {str(col): i + 1 for i, col in enumerate(df.columns)}
 
     # Iterar sobre as linhas do DataFrame (dados começam na linha 2 do Excel)
     for row_idx, (_, row) in enumerate(df.iterrows(), start=2):
@@ -63,8 +63,9 @@ def apply_excel_rules(ws: Any, df: pd.DataFrame) -> None:
             if rule.predicate(row):
                 target_cols = rule.target_cells(df)
                 for col_name in target_cols:
-                    if col_name in col_map:
-                        cell = ws.cell(row=row_idx, column=col_map[col_name])
+                    s_col = str(col_name)
+                    if s_col in col_map:
+                        cell = ws.cell(row=row_idx, column=col_map[s_col])
 
                         if rule.excel_fill:
                             cell.fill = rule.excel_fill

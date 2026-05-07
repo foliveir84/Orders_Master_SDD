@@ -62,46 +62,58 @@ def reorder_columns(df: pd.DataFrame, detailed: bool) -> pd.DataFrame:
     Reordena as colunas do DataFrame conforme a vista solicitada.
     Ordem: CÓDIGO, DESIGNAÇÃO, LOCALIZACAO, PVP / PVP_Médio, P.CUSTO / P.CUSTO_Médio, DUC, DTVAL, STOCK, [Meses], T Uni, Proposta, DIR, DPR, DATA_OBS
     """
-    # 1. Definir blocos de colunas estáticas
+    # 1. Definir blocos de colunas estáticas (como strings para comparação robusta)
     before_months = [
-        Columns.CODIGO,
-        Columns.DESIGNACAO,
-        Columns.LOCALIZACAO,
-        Columns.PVP,
+        str(Columns.CODIGO),
+        str(Columns.DESIGNACAO),
+        str(Columns.LOCALIZACAO),
+        str(Columns.PVP),
         "PVP_Médio",
-        Columns.P_CUSTO,
+        str(Columns.P_CUSTO),
         "P.CUSTO_Médio",
-        Columns.DUC,
-        Columns.DTVAL,
-        Columns.STOCK,
+        str(Columns.DUC),
+        str(Columns.DTVAL),
+        str(Columns.STOCK),
     ]
     
     after_months = [
-        Columns.T_UNI,
-        Columns.PROPOSTA,
-        Columns.DIR,
-        Columns.DPR,
-        Columns.DATA_OBS,
+        str(Columns.T_UNI),
+        str(Columns.PROPOSTA),
+        str(Columns.DIR),
+        str(Columns.DPR),
+        str(Columns.DATA_OBS),
+        str(Columns.TIME_DELTA),
     ]
 
     # 2. Identificar colunas presentes
-    existing_before = [c for c in before_months if c in df.columns]
-    existing_after = [c for c in after_months if c in df.columns]
+    # Convertemos todas as colunas do DF para string para a comparação
+    current_cols = [str(c) for c in df.columns]
+    col_map = {str(c): c for c in df.columns} # mapeia de volta para o objecto original (StrEnum ou str)
+
+    existing_before_strs = [c for c in before_months if c in current_cols]
+    existing_after_strs = [c for c in after_months if c in current_cols]
     
-    # 3. Meses dinâmicos são os que não estão nos blocos estáticos nem são colunas técnicas
-    tech_cols = {Columns.SORT_KEY, Columns.CLA, "CÓDIGO_STR", "price_anomaly", Columns.MEDIA, Columns.MARCA}
-    months = [
-        c for c in df.columns 
-        if c not in existing_before 
-        and c not in existing_after 
-        and c not in tech_cols
+    # 3. Meses dinâmicos
+    tech_cols_strs = {
+        str(Columns.SORT_KEY), str(Columns.CLA), "CÓDIGO_STR", "price_anomaly", 
+        str(Columns.MEDIA), str(Columns.MARCA), str(Columns.PRICE_ANOMALY)
+    }
+    
+    months_strs = [
+        c for c in current_cols 
+        if c not in existing_before_strs 
+        and c not in existing_after_strs 
+        and c not in tech_cols_strs
     ]
 
-    # 4. Concatenar na ordem certa
-    final_order = existing_before + months + existing_after
+    # 4. Concatenar na ordem certa (usando os objectos originais das colunas)
+    final_order_strs = existing_before_strs + months_strs + existing_after_strs
+    final_order = [col_map[s] for s in final_order_strs]
     
-    # Adicionar colunas técnicas ao fim (serão ocultadas na UI mas mantidas no DF)
-    final_order += [c for c in tech_cols if c in df.columns]
+    # Adicionar colunas técnicas ao fim
+    for s in tech_cols_strs:
+        if s in col_map and col_map[s] not in final_order:
+            final_order.append(col_map[s])
 
     return df[final_order]
 
@@ -273,6 +285,13 @@ def aggregate(
             if col in df_agg.columns:
                 meta = df_agg.groupby(Columns.CODIGO)[col].first().reset_index()
                 df_group_rows = df_group_rows.merge(meta, on=Columns.CODIGO, how="left")
+
+        # Calcular PVP e P.Custo médios para a linha Grupo
+        price_cols_to_avg = [c for c in [Columns.PVP, Columns.P_CUSTO] if c in df_agg.columns]
+        if price_cols_to_avg:
+            group_prices = df_agg.groupby(Columns.CODIGO, as_index=False)[price_cols_to_avg].mean()
+            group_prices[price_cols_to_avg] = group_prices[price_cols_to_avg].round(2)
+            df_group_rows = df_group_rows.merge(group_prices, on=Columns.CODIGO, how="left")
 
         # DUC e DTVAL ficam NaN na linha Grupo (por design)
         df_agg = pd.concat([df_agg, df_group_rows], ignore_index=True)

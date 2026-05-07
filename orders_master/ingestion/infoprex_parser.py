@@ -84,7 +84,7 @@ def parse_infoprex_file(
     meses_vistos: dict[str, int] = {}
     rename_dict = {}
 
-    for col_v in vendas_presentes:
+    for col_v in vendas_invertidas:
         offset = int(col_v[1:])
         if pd.isna(data_max):
             rename_dict[col_v] = col_v

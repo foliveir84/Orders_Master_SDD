@@ -106,21 +106,21 @@ def parity_df() -> pd.DataFrame:
     5 — Normal (sem nenhuma regra activa)
     """
     data: dict[str, Any] = {
-        Columns.CODIGO: [1, 2, 3, 4, 5, 6],
-        Columns.DESIGNACAO: ["Grupo Prod", "Nao Comprar Prod", "Rutura Prod", "Validade Prod", "Anomalo Prod", "Normal Prod"],
-        Columns.LOCALIZACAO: [GroupLabels.GROUP_ROW, "Farm A", "Farm B", "Farm C", "Farm D", "Farm E"],
-        Columns.STOCK: [0, 5, 3, 8, 4, 10],
-        Columns.T_UNI: [100, 50, 30, 60, 20, 80],
-        Columns.PROPOSTA: [0, 5, 10, 2, 4, 8],
-        Columns.MARCA: ["", "M1", "M2", "M3", "M4", "M5"],
-        Columns.DATA_OBS: [pd.NA, "10-05-2024", pd.NA, pd.NA, pd.NA, pd.NA],
-        Columns.DIR: [pd.NA, pd.NA, "2024-04-01", pd.NA, pd.NA, pd.NA],
-        Columns.DPR: [pd.NA, pd.NA, "2024-07-01", pd.NA, pd.NA, pd.NA],
-        Columns.TIME_DELTA: [pd.NA, pd.NA, 30, pd.NA, pd.NA, pd.NA],
-        Columns.DTVAL: [pd.NA, pd.NA, pd.NA, _dtval_short, pd.NA, pd.NA],
-        Columns.PVP_MEDIO: [0.0, 12.5, 8.0, 5.5, 999.0, 15.0],
-        Columns.PRICE_ANOMALY: [False, False, False, False, True, False],
-        Columns.SORT_KEY: [1, 0, 0, 0, 0, 0],
+        str(Columns.CODIGO): [1, 2, 3, 4, 5, 6],
+        str(Columns.DESIGNACAO): ["Grupo Prod", "Nao Comprar Prod", "Rutura Prod", "Validade Prod", "Anomalo Prod", "Normal Prod"],
+        str(Columns.LOCALIZACAO): [GroupLabels.GROUP_ROW, "Farm A", "Farm B", "Farm C", "Farm D", "Farm E"],
+        str(Columns.STOCK): [0, 5, 3, 8, 4, 10],
+        str(Columns.T_UNI): [100, 50, 30, 60, 20, 80],
+        str(Columns.PROPOSTA): [0, 5, 10, 2, 4, 8],
+        str(Columns.MARCA): ["", "M1", "M2", "M3", "M4", "M5"],
+        str(Columns.DATA_OBS): [pd.NA, "10-05-2024", pd.NA, pd.NA, pd.NA, pd.NA],
+        str(Columns.DIR): [pd.NA, pd.NA, "2024-04-01", pd.NA, pd.NA, pd.NA],
+        str(Columns.DPR): [pd.NA, pd.NA, "2024-07-01", pd.NA, pd.NA, pd.NA],
+        str(Columns.TIME_DELTA): [pd.NA, pd.NA, 30, pd.NA, pd.NA, pd.NA],
+        str(Columns.DTVAL): [pd.NA, pd.NA, pd.NA, _dtval_short, pd.NA, pd.NA],
+        str(Columns.PVP_MEDIO): [0.0, 12.5, 8.0, 5.5, 999.0, 15.0],
+        str(Columns.PRICE_ANOMALY): [False, False, False, False, True, False],
+        str(Columns.SORT_KEY): [1, 0, 0, 0, 0, 0],
     }
     return pd.DataFrame(data)
 

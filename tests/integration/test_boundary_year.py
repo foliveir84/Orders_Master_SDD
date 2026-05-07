@@ -46,17 +46,17 @@ def test_month_names_across_years():
     assert "JAN.1" in cols
     assert "DEZ" in cols
     assert "DEZ.1" in cols
-    assert "NOV.1" in cols
+    assert "NOV" in cols
 
     # Verificar ordem posicional no df_filtered (antes do aggregator)
     # O parser faz: base_cols + vendas_invertidas
     # Vendas invertidas = V14, V13, ..., V0
-    idx_v14 = cols.index("NOV.1")
-    idx_v0 = cols.index("JAN")
+    idx_v14 = cols.index("NOV")
+    idx_v0 = cols.index("JAN.1")
 
     assert idx_v14 < idx_v0
-    assert cols[idx_v0 - 1] == "DEZ"
-    assert cols[idx_v0 - 12] == "JAN.1"
+    assert cols[idx_v0 - 1] == "DEZ.1"
+    assert cols[idx_v0 - 12] == "JAN"
 
 
 def test_no_duplicate_month_names_collision():

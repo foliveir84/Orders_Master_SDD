@@ -58,7 +58,7 @@ def _target_nao_comprar(df: pd.DataFrame) -> list[str]:
             return []
         start_idx = int(start_idx_raw)
         end_idx = int(end_idx_raw)
-        return [str(c) for c in df.columns[start_idx : end_idx + 1]]
+        return list(df.columns[start_idx : end_idx + 1])
     except KeyError:
         return []
 

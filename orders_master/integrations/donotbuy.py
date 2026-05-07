@@ -73,13 +73,13 @@ def merge_donotbuy(
     df_out["CÓDIGO_STR"] = df_out["CÓDIGO"].astype(str)
 
     if detailed:
-        if "LOCALIZACAO" not in df_out.columns:
+        if Columns.LOCALIZACAO not in df_out.columns:
             df_out[Columns.DATA_OBS] = pd.NA
             return df_out.drop(columns=["CÓDIGO_STR"])
 
         df_out = df_out.merge(
             df_donotbuy,
-            left_on=["CÓDIGO_STR", "LOCALIZACAO"],
+            left_on=["CÓDIGO_STR", Columns.LOCALIZACAO],
             right_on=["CNP", "FARMACIA"],
             how="left",
         )

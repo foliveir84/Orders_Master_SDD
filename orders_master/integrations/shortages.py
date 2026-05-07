@@ -33,7 +33,7 @@ def fetch_shortages_db(url: str, codigos_visible: set[int] | None = None) -> pd.
             "Número de registo",
             "Data de início de rutura",
             "Data prevista para reposição",
-            "TimeDelta",
+            Columns.TIME_DELTA,
             "Data da Consulta",
         ]
     )
@@ -58,7 +58,7 @@ def fetch_shortages_db(url: str, codigos_visible: set[int] | None = None) -> pd.
     df["Data de início de rutura"] = pd.to_datetime(df["Data de início de rutura"], errors="coerce")
 
     today = datetime.now().date()
-    df["TimeDelta"] = (df["Data prevista para reposição"].dt.date - today).apply(
+    df[Columns.TIME_DELTA] = (df["Data prevista para reposição"].dt.date - today).apply(
         lambda x: x.days if pd.notnull(x) else pd.NA
     )
 
@@ -87,19 +87,19 @@ def merge_shortages(df_sell_out: pd.DataFrame, df_shortages: pd.DataFrame) -> pd
 
     # Renomear e formatar DIR/DPR
     if "Data de início de rutura" in df_out.columns:
-        df_out["DIR"] = df_out["Data de início de rutura"].dt.strftime("%d-%m-%Y")
+        df_out[Columns.DIR] = df_out["Data de início de rutura"].dt.strftime("%d-%m-%Y")
     else:
-        df_out["DIR"] = pd.NA
+        df_out[Columns.DIR] = pd.NA
 
     if "Data prevista para reposição" in df_out.columns:
-        df_out["DPR"] = df_out["Data prevista para reposição"].dt.strftime("%d-%m-%Y")
+        df_out[Columns.DPR] = df_out["Data prevista para reposição"].dt.strftime("%d-%m-%Y")
     else:
-        df_out["DPR"] = pd.NA
+        df_out[Columns.DPR] = pd.NA
 
     # Manter apenas as colunas originais do sell_out + as 3 da integração necessárias
     # Isto remove automaticamente colunas extra como "Motivo", "Medida de Mitigação", etc.
     cols_base_sellout = list(df_sell_out.columns)
-    cols_integracao = ["DIR", "DPR", Columns.TIME_DELTA]
+    cols_integracao = [Columns.DIR, Columns.DPR, Columns.TIME_DELTA]
     
     final_cols = [c for c in cols_base_sellout if c in df_out.columns]
     for c in cols_integracao:

@@ -19,7 +19,9 @@ def _css_for_row(row: pd.Series, rule: HighlightRule, target_cols: list[str]) ->
     Devolve uma lista de strings CSS, uma por coluna do row.
     Colunas que são alvo da regra recebem ``rule.css_web``; as restantes ficam vazias.
     """
-    return [rule.css_web if col in target_cols else "" for col in row.index]
+    # Normalizar para strings para garantir match entre Enums e strings literais
+    target_set = {str(c) for c in target_cols}
+    return [rule.css_web if str(col) in target_set else "" for col in row.index]
 
 
 def build_styler(df: pd.DataFrame) -> "pd.io.formats.style.Styler":

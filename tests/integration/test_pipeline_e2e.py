@@ -97,7 +97,7 @@ def test_pipeline_with_integration_mocks(mock_infoprex_content) -> None:
     df_shortages = pd.DataFrame(
         {
             "Número de registo": ["2234567"],
-            "TimeDelta": [30],
+            Columns.TIME_DELTA: [30],
             "DIR": ["2024-05-01"],
             "DPR": ["2024-06-01"],
             "Data da Consulta": ["2024-05-15"],
