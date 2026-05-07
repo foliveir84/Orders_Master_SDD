@@ -236,7 +236,7 @@ def render_weights_selector() -> tuple[float, ...]:
     return presets[selected_preset]
 
 
-def render_brands_filter(state: SessionState) -> list[str] | None:
+def render_brands_filter(state: SessionState, only_options: bool = False) -> list[str] | None:
     """Widget de filtro de marcas (TASK-30)."""
     # Só faz sentido se houver marcas disponíveis no dataset filtrado actual
     if state.df_raw.empty or Columns.MARCA not in state.df_raw.columns:
@@ -251,17 +251,23 @@ def render_brands_filter(state: SessionState) -> list[str] | None:
     if not available_brands:
         return None
 
+    sorted_brands = sorted(available_brands)
+
+    if only_options:
+        return sorted_brands
+
     # Key dinâmica para evitar state ghost (§5.5.3)
     dynamic_key = f"brands_ms_{'_'.join(state.last_labs_selection or [])}"
 
     selected = st.multiselect(
         "🏷️ Filtrar por Marca:",
-        options=sorted(available_brands),
-        default=sorted(available_brands),
+        options=sorted_brands,
+        default=sorted_brands,
         key=dynamic_key,
         help="A linha 'Grupo' é preservada mesmo ao filtrar marcas.",
     )
     return selected
+
 
 
 def _render_obsolete_filters_warning(state: SessionState, selection: SidebarSelection) -> None:

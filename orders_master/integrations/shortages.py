@@ -95,17 +95,14 @@ def merge_shortages(df_sell_out: pd.DataFrame, df_shortages: pd.DataFrame) -> pd
     else:
         df_out["DPR"] = pd.NA
 
-    # Drop auxiliary columns (TimeDelta NOT dropped here, as it's used in compute_shortage_proposal)
-    cols_to_drop = [
-        "CÓDIGO_STR",
-        "Número de registo",
-        "Nome do medicamento",
-        "Data de início de rutura",
-        "Data prevista para reposição",
-        "Data da Consulta",
-    ]
+    # Manter apenas as colunas originais do sell_out + as 3 da integração necessárias
+    # Isto remove automaticamente colunas extra como "Motivo", "Medida de Mitigação", etc.
+    cols_base_sellout = list(df_sell_out.columns)
+    cols_integracao = ["DIR", "DPR", Columns.TIME_DELTA]
+    
+    final_cols = [c for c in cols_base_sellout if c in df_out.columns]
+    for c in cols_integracao:
+        if c in df_out.columns and c not in final_cols:
+            final_cols.append(c)
 
-    cols_to_drop = [c for c in cols_to_drop if c in df_out.columns]
-    df_out = df_out.drop(columns=cols_to_drop)
-
-    return df_out
+    return df_out[final_cols]

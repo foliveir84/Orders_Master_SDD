@@ -44,6 +44,9 @@ def compute_scope_tag(labs: list[str], codes_file: Any, codes_count: int) -> str
 def apply_excel_rules(ws: Any, df: pd.DataFrame) -> None:
     """
     Aplica as HighlightRules do rules.py a uma worksheet openpyxl.
+    
+    IMPORTANTE: O DataFrame passado deve ser o mesmo usado para gerar a worksheet (df_export)
+    para garantir que o mapeamento de colunas (col_map) está correcto.
     """
     # Mapeamento de nome de coluna para índice de coluna (1-based para openpyxl)
     col_map = {col: i + 1 for i, col in enumerate(df.columns)}
@@ -85,10 +88,11 @@ def build_excel(df: pd.DataFrame, scope_tag: str) -> tuple[bytes, str]:
     filename = f"Sell_Out_{scope_tag}_{timestamp}.xlsx"
 
     # 2. Criar ficheiro Excel base via Pandas
-    # Remover colunas técnicas/auxiliares antes de exportar
+    # Remover apenas colunas técnicas/auxiliares (DIR, DPR e DATA_OBS DEVEM ser exportadas)
     hide_cols = [
-        "DIR", "DPR", "DATA_OBS", "TimeDelta", 
-        "price_anomaly", "_sort_key", "CLA", "CÓDIGO_STR"
+        Columns.TIME_DELTA, Columns.PRICE_ANOMALY, 
+        Columns.SORT_KEY, Columns.CLA, "CÓDIGO_STR", 
+        Columns.MEDIA, Columns.MARCA
     ]
     df_export = df.drop(columns=[c for c in hide_cols if c in df.columns])
 
@@ -101,7 +105,8 @@ def build_excel(df: pd.DataFrame, scope_tag: str) -> tuple[bytes, str]:
     wb = load_workbook(output)
     ws = wb.active
 
-    apply_excel_rules(ws, df)
+    # Usar df_export para garantir alinhamento de colunas na aplicação de estilos
+    apply_excel_rules(ws, df_export)
 
     # Ajustar largura das colunas (básico)
     for col in ws.columns:

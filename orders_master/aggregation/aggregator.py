@@ -72,11 +72,11 @@ def reorder_columns(df: pd.DataFrame, detailed: bool) -> pd.DataFrame:
         "P.CUSTO_Médio",
         Columns.DUC,
         Columns.DTVAL,
+        Columns.STOCK,
     ]
     
     after_months = [
         Columns.T_UNI,
-        Columns.STOCK,
         Columns.PROPOSTA,
         Columns.DIR,
         Columns.DPR,
