@@ -243,7 +243,7 @@ def aggregate(
     # Passo 7 — Vista detalhada: adicionar linhas de Grupo
     # ------------------------------------------------------------------
     if detailed:
-        group_agg_cols = [Columns.STOCK, Columns.T_UNI] + sales_cols
+        group_agg_cols = [Columns.STOCK, Columns.T_UNI, Columns.PROPOSTA, Columns.MEDIA] + sales_cols
         group_agg_cols_present = [c for c in group_agg_cols if c in df_agg.columns]
         df_group_rows = df_agg.groupby(Columns.CODIGO, as_index=False)[group_agg_cols_present].sum()
 

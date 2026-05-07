@@ -1205,7 +1205,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-38 — Testes de integração end-to-end
+### [x] TASK-38 — Testes de integração end-to-end
 **Objectivo:** Criar teste que executa o pipeline completo: 2 ficheiros → agregação → proposta → Excel.
 **Referência PRD:** → PRD §8.13
 **Bloqueado por:** TASK-23, TASK-24, TASK-35, TASK-42
@@ -1216,10 +1216,10 @@ class FileError(NamedTuple):
   - `test_full_pipeline_detailed` — idem com `detailed=True`.
   - Verifica: schema do output, colunas presentes, proposta calculada, Excel abrível.
 **Critérios de Aceitação:**
-- [ ] Pipeline completo sem erros para fixtures válidas.
-- [ ] Output Excel abrível por openpyxl.
-- [ ] Coluna `Proposta` presente e inteira.
-- [ ] Colunas auxiliares (`_sort_key`, `CÓDIGO_STR`, etc.) ausentes do output.
+- [x] Pipeline completo sem erros para fixtures válidas.
+- [x] Output Excel abrível por openpyxl.
+- [x] Coluna `Proposta` presente e inteira.
+- [x] Colunas auxiliares (`_sort_key`, `CÓDIGO_STR`, etc.) ausentes do output.
 **Notas de Implementação:**
 - Usar mock para integrações externas (shortages, donotbuy) → DataFrames vazios.
 - `build_excel()` produz bytes → validar com `load_workbook(BytesIO(bytes))`.

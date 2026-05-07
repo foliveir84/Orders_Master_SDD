@@ -85,9 +85,16 @@ def build_excel(df: pd.DataFrame, scope_tag: str) -> tuple[bytes, str]:
     filename = f"Sell_Out_{scope_tag}_{timestamp}.xlsx"
 
     # 2. Criar ficheiro Excel base via Pandas
+    # Remover colunas técnicas/auxiliares antes de exportar
+    hide_cols = [
+        "DIR", "DPR", "DATA_OBS", "TimeDelta", 
+        "price_anomaly", "_sort_key", "CLA", "CÓDIGO_STR"
+    ]
+    df_export = df.drop(columns=[c for c in hide_cols if c in df.columns])
+
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name="Propostas")
+        df_export.to_excel(writer, index=False, sheet_name="Propostas")
 
     # 3. Reabrir com openpyxl para aplicar estilos
     output.seek(0)
