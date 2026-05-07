@@ -721,11 +721,11 @@ class FileError(NamedTuple):
     8. Popular `SessionState` (DataFrames, file_errors, file_inventory, scope_context).
   - Suporta `progress_callback` para barra de progresso.
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_session_service.py`:
-  - [ ] 2 ficheiros válidos → `df_aggregated` e `df_detailed` populados.
-  - [ ] `file_inventory` com 2 entries `"ok"`.
-  - [ ] `scope_context` preenchido (n_produtos, n_farmacias, etc.).
-  - [ ] Ficheiro corrompido → processamento continua com os restantes.
+- [x] Teste `tests/unit/test_session_service.py`:
+  - [x] 2 ficheiros válidos → `df_aggregated` e `df_detailed` populados.
+  - [x] `file_inventory` com 2 entries `"ok"`.
+  - [x] `scope_context` preenchido (n_produtos, n_farmacias, etc.).
+  - [x] Ficheiro corrompido → processamento continua com os restantes.
 **Notas de Implementação:**
 - Este é o "pipeline pesado" — corre só ao clicar `Processar Dados`.
 - Não calcula propostas — isso é feito em `recalc_service` (TASK-24).
@@ -755,12 +755,12 @@ class FileError(NamedTuple):
     9. Drop colunas auxiliares (`_sort_key`, `CÓDIGO_STR`, `TimeDelta`, `CLA`).
     10. Devolver DataFrame final (`FinalProposalRow`).
 **Critérios de Aceitação:**
-- [ ] Teste `tests/unit/test_recalc_service.py`:
-  - [ ] Mudança de slider `meses_previsao` → proposta recalcula sem re-parse.
-  - [ ] Toggle `detailed` → troca entre vistas.
-  - [ ] Toggle `use_previous_month` → janela de média desloca.
-  - [ ] Filtro de marcas aplicado → produtos filtrados, linha Grupo preservada.
-  - [ ] Integrações falham → processamento continua com proposta base.
+- [x] Teste `tests/unit/test_recalc_service.py`:
+  - [x] Mudança de slider `meses_previsao` → proposta recalcula sem re-parse.
+  - [x] Toggle `detailed` → troca entre vistas.
+  - [x] Toggle `use_previous_month` → janela de média desloca.
+  - [x] Filtro de marcas aplicado → produtos filtrados, linha Grupo preservada.
+  - [x] Integrações falham → processamento continua com proposta base.
 **Notas de Implementação:**
 - Este é o "pipeline leve" — corre a cada interacção do utilizador (slider, toggle, filtro marca).
 - Deve completar em < 500ms para UX fluida (NFR-P2).

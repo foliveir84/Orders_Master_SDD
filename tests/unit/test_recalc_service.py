@@ -13,18 +13,23 @@ from orders_master.constants import Columns, GroupLabels
 
 @pytest.fixture
 def sample_detailed_df() -> pd.DataFrame:
-    """Fixture com 2 lojas, 1 produto, 5 meses de vendas."""
+    """
+    Fixture com 2 lojas, 1 produto, 5 meses de vendas.
+    Ordem real (ADR-004): V4, V3, V2, V1, V0, T Uni.
+    V0 é o mês mais recente (Mês Atual).
+    Indices: V4(4), V3(5), V2(6), V1(7), V0(8), T Uni(9).
+    """
     data = [
         {
             Columns.CODIGO: 2001,
             Columns.DESIGNACAO: "Produto A",
             Columns.LOCALIZACAO: "FAR_A",
             Columns.STOCK: 10,
-            "V0": 10,
-            "V1": 10,
-            "V2": 10,
-            "V3": 10,
             "V4": 10,
+            "V3": 10,
+            "V2": 10,
+            "V1": 10,
+            "V0": 10,
             "T Uni": 50,
             Columns.PVP: 10.0,
             Columns.P_CUSTO: 5.0,
@@ -34,11 +39,11 @@ def sample_detailed_df() -> pd.DataFrame:
             Columns.DESIGNACAO: "Produto A",
             Columns.LOCALIZACAO: "FAR_B",
             Columns.STOCK: 5,
-            "V0": 5,
-            "V1": 5,
-            "V2": 5,
-            "V3": 5,
             "V4": 5,
+            "V3": 5,
+            "V2": 5,
+            "V1": 5,
+            "V0": 5,
             "T Uni": 25,
             Columns.PVP: 10.0,
             Columns.P_CUSTO: 5.0,
@@ -103,19 +108,20 @@ def test_recalc_performance(sample_detailed_df, master_products) -> None:
 
 def test_recalc_weights_influence(sample_detailed_df, master_products) -> None:
     """Alterar pesos deve alterar a média ponderada."""
-    # Vendas: V1=10, V2=10, V3=10, V4=10 (Ignora V0 por default offset=1)
-    # Weights[0] mapeia para a coluna imediatamente antes de T Uni (V4)
+    # Ordem: V4, V3, V2, V1, V0, T Uni
+    # Janela default (offset=1): V0, V1, V2, V3. (V4 é ignorado).
+    # weights[0] é o mais recente na janela (V0).
     df = sample_detailed_df.copy()
-    df.loc[0, "V4"] = 20
-    df.loc[1, "V4"] = 20
+    df.loc[0, "V0"] = 20
+    df.loc[1, "V0"] = 20
 
-    # Pesos (1.0, 0, 0, 0) -> Foca em V4
+    # Pesos (1.0, 0, 0, 0) -> Foca em V0
     res1 = recalculate_proposal(df, False, master_products, 1.0, (1.0, 0, 0, 0))
     # Loja A: 20, Loja B: 20 -> Total 40
     assert res1[Columns.MEDIA].iloc[0] == 40
 
-    # Pesos (0, 1.0, 0, 0) -> Foca em V3
-    res2 = recalculate_proposal(df, False, master_products, 1.0, (0, 1.0, 0, 0))
+    # Pesos (0, 0, 0, 1.0) -> Foca em V3
+    res2 = recalculate_proposal(df, False, master_products, 1.0, (0, 0, 0, 1.0))
     # Loja A: 10, Loja B: 5 -> Total 15
     assert res2[Columns.MEDIA].iloc[0] == 15
 
@@ -144,3 +150,49 @@ def test_recalc_brand_filtering(sample_detailed_df) -> None:
     res2 = recalculate_proposal(df, False, master, 1.0, weights, marcas=["Marca X"])
     assert len(res2) == 1
     assert res2[Columns.MARCA].iloc[0] == "Marca X"
+
+
+def test_recalc_use_previous_month(sample_detailed_df, master_products) -> None:
+    """Toggle use_previous_month deve deslocar a janela de média."""
+    # Ordem: V4, V3, V2, V1, V0, T Uni
+    # V0 é o mais recente.
+    df = sample_detailed_df.copy()
+    df.loc[0, "V0"] = 100
+    df.loc[1, "V0"] = 100
+
+    # 1. use_previous_month=False -> Inclui V0.
+    res1 = recalculate_proposal(df, False, master_products, 1.0, (1.0, 0, 0, 0), use_previous_month=False)
+    # weights[0] é V0. V0=100 -> Total 200
+    assert res1[Columns.MEDIA].iloc[0] == 200
+
+    # 2. use_previous_month=True (Ignorar mês corrente) -> Janela [V4, V3, V2, V1]. Pula V0.
+    res2 = recalculate_proposal(df, False, master_products, 1.0, (1.0, 0, 0, 0), use_previous_month=True)
+    # weights[0] é V1. V1=10 -> Total 15
+    assert res2[Columns.MEDIA].iloc[0] == 15
+
+
+def test_recalc_scope_context_update(sample_detailed_df, master_products) -> None:
+    """Verifica se o ScopeContext é actualizado com as métricas correctas."""
+    from dataclasses import dataclass
+
+    @dataclass
+    class MockScopeContext:
+        n_produtos: int = 0
+        n_farmacias: int = 0
+        meses: float = 0.0
+        modo: str = ""
+        primeiro_mes: str = ""
+        ultimo_mes: str = ""
+
+    ctx = MockScopeContext()
+    recalculate_proposal(sample_detailed_df, False, master_products, 2.5, (0.4, 0.3, 0.2, 0.1), scope_context=ctx)
+
+    assert ctx.n_produtos == 1
+    assert ctx.n_farmacias == 2
+    assert ctx.meses == 2.5
+    assert ctx.modo == "Agrupada"
+    # Janela default (offset=1): V3, V2, V1, V0.
+    # primeiro_mes (mais antigo) = V3.
+    # ultimo_mes (mais recente na janela) = V0.
+    assert ctx.primeiro_mes == "V3"
+    assert ctx.ultimo_mes == "V0"
