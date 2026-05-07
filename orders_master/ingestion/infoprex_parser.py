@@ -129,15 +129,45 @@ def parse_infoprex_file(
             lambda x: map_location(str(x), locations_aliases) if pd.notna(x) else ""
         )
 
+    # Garantir que todas as colunas de vendas são numéricas
+    for col_v in vendas_presentes:
+        if col_v in df_filtered.columns:
+            # Converter para string, trocar vírgula por ponto e depois para numérico
+            df_filtered[col_v] = (
+                df_filtered[col_v]
+                .astype(str)
+                .str.replace(",", ".", regex=False)
+                .str.strip()
+            )
+            df_filtered[col_v] = pd.to_numeric(df_filtered[col_v], errors="coerce").fillna(0.0)
+
     if Columns.STOCK in df_filtered.columns:
+        df_filtered[Columns.STOCK] = (
+            df_filtered[Columns.STOCK]
+            .astype(str)
+            .str.replace(",", ".", regex=False)
+            .str.strip()
+        )
         df_filtered[Columns.STOCK] = (
             pd.to_numeric(df_filtered[Columns.STOCK], errors="coerce").fillna(0).astype(int)
         )
     if Columns.PVP in df_filtered.columns:
+        df_filtered[Columns.PVP] = (
+            df_filtered[Columns.PVP]
+            .astype(str)
+            .str.replace(",", ".", regex=False)
+            .str.strip()
+        )
         df_filtered[Columns.PVP] = pd.to_numeric(df_filtered[Columns.PVP], errors="coerce").fillna(
             0.0
         )
     if Columns.P_CUSTO in df_filtered.columns:
+        df_filtered[Columns.P_CUSTO] = (
+            df_filtered[Columns.P_CUSTO]
+            .astype(str)
+            .str.replace(",", ".", regex=False)
+            .str.strip()
+        )
         df_filtered[Columns.P_CUSTO] = pd.to_numeric(
             df_filtered[Columns.P_CUSTO], errors="coerce"
         ).fillna(0.0)

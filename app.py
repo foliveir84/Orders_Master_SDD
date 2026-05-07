@@ -76,6 +76,7 @@ def main() -> None:
             codes_file=selection.codes_file,
             brands_files=selection.brands_files,
             labs_selected=selection.labs_selected,
+            labs_config=labs_config,
             locations_aliases=locations_aliases,
             state=state,
             progress_callback=update_progress,

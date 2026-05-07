@@ -23,6 +23,7 @@ def process_orders_session(  # noqa: PLR0913
     codes_file: Any | None,
     brands_files: list[Any],
     labs_selected: list[str],
+    labs_config: Any | None,
     locations_aliases: dict[str, str],
     state: SessionState,
     progress_callback: Callable[[float, str], None] | None = None,
@@ -34,13 +35,18 @@ def process_orders_session(  # noqa: PLR0913
     state.last_labs_selection = list(labs_selected)
     state.last_codes_file_name = getattr(codes_file, "name", None) if codes_file else None
 
-    # 1. Parse codes TXT (se presente)
+    # 1. Parse codes TXT (se presente) ou obter CLA dos labs selecionados
     lista_codigos = []
-    lista_cla = labs_selected
+    lista_cla = []
+
     if codes_file is not None:
         lista_codigos = parse_codes_txt(codes_file)
-        if lista_codigos:
-            lista_cla = []  # Códigos têm prioridade sobre labs
+
+    # Se não há lista TXT, usamos os laboratórios seleccionados (mapeando nomes -> códigos)
+    if not lista_codigos and labs_selected and labs_config:
+        for lab in labs_selected:
+            if lab in labs_config.root:
+                lista_cla.extend(labs_config.root[lab])
 
     # 2. Parse Infoprex files
     dfs = load_infoprex_files(
