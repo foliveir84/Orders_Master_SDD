@@ -131,7 +131,8 @@ def render_main(
             styler, 
             use_container_width=True, 
             height=600,
-            column_config=column_config
+            column_config=column_config,
+            hide_index=True
         )
 
         # 14. Botão Download Excel (TASK-42)
