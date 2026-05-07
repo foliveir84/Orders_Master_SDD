@@ -1322,7 +1322,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-47 — Validação `mypy --strict`
+### [x] TASK-47 — Validação `mypy --strict`
 **Objectivo:** Garantir que `mypy --strict orders_master/` passa sem erros.
 **Referência PRD:** → PRD §7.3 (NFR-M1)
 **Bloqueado por:** Todas as TASKs de domínio (TASK-03 a TASK-24, TASK-40 a TASK-42)
@@ -1332,8 +1332,8 @@ class FileError(NamedTuple):
 - Type hints em 100% das funções públicas.
 - `py.typed` marker file em `orders_master/`.
 **Critérios de Aceitação:**
-- [ ] `mypy --strict orders_master/` → exit 0.
-- [ ] Nenhum `# type: ignore` sem comentário justificativo.
+- [x] `mypy --strict orders_master/` → exit 0.
+- [x] Nenhum `# type: ignore` sem comentário justificativo.
 **Notas de Implementação:**
 - Pode precisar de stubs para `streamlit` em `app_services/` (ignorar com `# type: ignore[import]` se necessário, mas justificar).
 - `pyproject.toml::[tool.mypy]` com `strict = true`.

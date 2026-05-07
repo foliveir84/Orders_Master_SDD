@@ -22,7 +22,7 @@ except ImportError:
         return func
 
 
-@cache_decorator  # type: ignore
+@cache_decorator
 def fetch_shortages_db(url: str, codigos_visible: set[int] | None = None) -> pd.DataFrame:
     """
     Lê a Google Sheet de Esgotados, valida o schema e recalcula o TimeDelta.
@@ -40,6 +40,7 @@ def fetch_shortages_db(url: str, codigos_visible: set[int] | None = None) -> pd.
     try:
         df = pd.read_excel(url, dtype={"Número de registo": str})
     except Exception as e:
+        st.sidebar.warning("⚠️ Ligação ao Google Sheets falhou.")
         logger.warning(f"Não foi possível carregar a BD de Rupturas a partir de {url}: {e}")
         return empty_df
 
