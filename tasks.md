@@ -929,7 +929,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-31 — Tabela renderizada + download button
+### [x] TASK-31 — Tabela renderizada + download button
 **Objectivo:** Integrar `build_styler()` para renderização web e `build_excel()` + `st.download_button` para exportação.
 **Referência PRD:** → PRD §6.1.6, §6.3.5
 **Bloqueado por:** TASK-27, TASK-40, TASK-41, TASK-42
@@ -940,9 +940,9 @@ class FileError(NamedTuple):
   - `excel_bytes, filename = build_excel(df_final, scope_tag)`.
   - `st.download_button("📥 Download Excel Encomendas", data=excel_bytes, file_name=filename, mime=XLSX_MIME)`.
 **Critérios de Aceitação:**
-- [ ] Tabela web renderizada com todas as regras de formatação (grupo, não comprar, rutura, validade).
-- [ ] Botão download produz ficheiro `.xlsx` com nome dinâmico.
-- [ ] Ficheiro Excel reproduz visualmente o que está na web.
+- [x] Tabela web renderizada com todas as regras de formatação (grupo, não comprar, rutura, validade).
+- [x] Botão download produz ficheiro `.xlsx` com nome dinâmico.
+- [x] Ficheiro Excel reproduz visualmente o que está na web.
 **Notas de Implementação:**
 - `scope_tag` derivado de `compute_scope_tag(labs, codes_file, codes_count)`.
 - MIME: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
