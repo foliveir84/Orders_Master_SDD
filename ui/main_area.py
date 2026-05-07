@@ -214,28 +214,29 @@ def render_weights_selector() -> tuple[float, ...]:
     if selected_preset == "Custom":
         with st.expander("Pesos Customizados (Soma deve ser 1.0)", expanded=True):
             col1, col2, col3, col4 = st.columns(4)
-            w1 = col1.number_input("Peso 1", 0.0, 1.0, 0.4, 0.05)
-            w2 = col2.number_input("Peso 2", 0.0, 1.0, 0.3, 0.05)
-            w3 = col3.number_input("Peso 3", 0.0, 1.0, 0.2, 0.05)
-            w4 = col4.number_input("Peso 4", 0.0, 1.0, 0.1, 0.05)
+            w1 = col1.number_input("Peso 1 (Mês n-1)", 0.0, 1.0, 0.4, 0.05)
+            w2 = col2.number_input("Peso 2 (Mês n-2)", 0.0, 1.0, 0.3, 0.05)
+            w3 = col3.number_input("Peso 3 (Mês n-3)", 0.0, 1.0, 0.2, 0.05)
+            w4 = col4.number_input("Peso 4 (Mês n-4)", 0.0, 1.0, 0.1, 0.05)
             weights = (w1, w2, w3, w4)
             total = sum(weights)
             if abs(total - 1.0) > 1e-3:
-                st.error(f"❌ Soma inválida: {total:.2f}. Deve ser 1.0.")
-                return (0.25, 0.25, 0.25, 0.25)  # Fallback seguro
+                st.error(f"❌ A soma dos pesos é {total:.2f}. Deve ser exactamente 1.00.")
+                st.warning("⚠️ Usando preset 'Padrão' até que a soma seja corrigida.")
+                return presets.get("Padrão", (0.4, 0.3, 0.2, 0.1))
             return weights
     return presets[selected_preset]
 
 
 def render_brands_filter(state: SessionState) -> list[str] | None:
     """Widget de filtro de marcas (TASK-30)."""
-    # Só faz sentido se houver marcas disponíveis no master
-    if state.master_products.empty or Columns.MARCA not in state.master_products.columns:
+    # Só faz sentido se houver marcas disponíveis no dataset filtrado actual
+    if state.df_raw.empty or Columns.MARCA not in state.df_raw.columns:
         return None
 
     # Extrair marcas únicas disponíveis (ignorando NaN)
     available_brands = (
-        state.master_products[state.master_products[Columns.MARCA].notna()][Columns.MARCA]
+        state.df_raw[state.df_raw[Columns.MARCA].notna()][Columns.MARCA]
         .unique()
         .tolist()
     )

@@ -46,13 +46,21 @@ def weighted_average(
     return df[cols].fillna(0).dot(w_series)
 
 
+import streamlit as st
+
+@st.cache_data(ttl=3600)
 def load_presets(path: str | Path) -> dict[str, tuple[float, ...]]:
     """
-    Loader de config/presets.yaml.
+    Loader de config/presets.yaml com cache para evitar I/O excessivo.
     """
     path = Path(path)
     if not path.exists():
-        raise FileNotFoundError(f"Ficheiro de presets não encontrado: {path}")
+        # Fallback se o ficheiro desaparecer
+        return {
+            "Conservador": (0.5, 0.3, 0.15, 0.05),
+            "Padrão": (0.4, 0.3, 0.2, 0.1),
+            "Agressivo": (0.25, 0.25, 0.25, 0.25),
+        }
 
     with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
