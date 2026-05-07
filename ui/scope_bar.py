@@ -31,6 +31,8 @@ def render_scope_summary(state: SessionState) -> None:
     months_val = st.session_state.get("months_input", ctx.meses)
     is_detailed = st.session_state.get("detailed_view_toggle", (ctx.modo == "Detalhada"))
     modo_val = "Detalhada" if is_detailed else "Agrupada"
+    use_previous_month = st.session_state.get("use_prev_month_toggle", True)
+    base_mes = "Mês Anterior" if use_previous_month else "Mês Corrente"
 
     # Construção da string de métricas
     metrics = [
@@ -41,6 +43,7 @@ def render_scope_summary(state: SessionState) -> None:
         f"⚖️ Pesos: {preset}",
         f"🔮 Previsão: **{months_val:.1f}** m",
         f"👁️ Modo: **{modo_val}**",
+        f"⏱️ Base: **{base_mes}**",
     ]
 
     content = " | ".join(metrics)

@@ -58,6 +58,11 @@ def process_orders_session(  # noqa: PLR0913
 
     df_full = pd.concat(dfs, ignore_index=True)
 
+    # Initialize integration columns so they exist in df_full and never break UI formatting
+    for col in [Columns.DIR, Columns.DPR, Columns.DATA_OBS, Columns.TIME_DELTA]:
+        if col not in df_full.columns:
+            df_full[col] = pd.NA
+
     # 2.5 Integrar BD de Rupturas (TASK-32)
     try:
         import streamlit as st  # noqa: PLC0415

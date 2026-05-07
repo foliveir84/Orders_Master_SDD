@@ -3,6 +3,7 @@ from datetime import datetime
 
 import pandas as pd
 
+from orders_master.constants import Columns
 from orders_master.schemas import ShortageRecordSchema
 
 logger = logging.getLogger(__name__)

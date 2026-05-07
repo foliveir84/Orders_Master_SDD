@@ -46,9 +46,6 @@ def render_main(
         )
         return
 
-    # 3. Scope Summary Bar (Só após processamento)
-    render_scope_summary(state)
-
     # 4. File Inventory (Só após processamento)
     render_file_inventory(state)
 
@@ -76,7 +73,7 @@ def render_main(
     with col_t2:
         # 9. Toggle "Média com base no mês ANTERIOR?"
         use_previous_month = st.toggle(
-            "Ignorar mês corrente na média?", 
+            "Média com base no Mês Anterior?", 
             value=True,
             key="use_prev_month_toggle"
         )
@@ -114,6 +111,9 @@ def render_main(
         marcas=marcas_selected,
         scope_context=state.scope_context,
     )
+
+    # 3. Scope Summary Bar (Renderizado após o recálculo para garantir que ctx está actualizado)
+    render_scope_summary(state)
 
     # 13. Tabela Formatada (TASK-41)
     if not df_final.empty:
