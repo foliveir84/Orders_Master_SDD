@@ -25,6 +25,19 @@ def months_until_expiry(dtval_str: str) -> float:
     return 999.0
 
 
+def _to_openpyxl_rgb(hex_color: str) -> str:
+    """
+    Converte cor '#RRGGBB' ou 'RRGGBB' para o formato AARRGGBB exigido pelo openpyxl.
+    Sem o prefixo 'FF' (alpha=opaco), as cores ficam transparentes após save/reload.
+    """
+    color = hex_color.lstrip("#")
+    if len(color) == 6:
+        return f"FF{color.upper()}"
+    if len(color) == 8:
+        return color.upper()
+    return f"FF{color.upper():0>6}"
+
+
 @dataclass
 class HighlightRule:
     name: str
@@ -57,11 +70,11 @@ RULES: list[HighlightRule] = [
         target_cells=lambda df: list(df.columns),
         css_web=f"background-color: {Highlight.GRUPO_BG}; color: {Highlight.GRUPO_FG}; font-weight: bold",
         excel_fill=PatternFill(
-            start_color=Highlight.GRUPO_BG.replace("#", ""),
-            end_color=Highlight.GRUPO_BG.replace("#", ""),
+            start_color=_to_openpyxl_rgb(Highlight.GRUPO_BG),
+            end_color=_to_openpyxl_rgb(Highlight.GRUPO_BG),
             fill_type="solid",
         ),
-        excel_font=Font(color=Highlight.GRUPO_FG.replace("#", ""), bold=True),
+        excel_font=Font(color=_to_openpyxl_rgb(Highlight.GRUPO_FG), bold=True),
         precedence=1,
     ),
     HighlightRule(
@@ -70,8 +83,8 @@ RULES: list[HighlightRule] = [
         target_cells=_target_nao_comprar,
         css_web=f"background-color: {Highlight.NAO_COMPRAR_BG};",
         excel_fill=PatternFill(
-            start_color=Highlight.NAO_COMPRAR_BG.replace("#", ""),
-            end_color=Highlight.NAO_COMPRAR_BG.replace("#", ""),
+            start_color=_to_openpyxl_rgb(Highlight.NAO_COMPRAR_BG),
+            end_color=_to_openpyxl_rgb(Highlight.NAO_COMPRAR_BG),
             fill_type="solid",
         ),
         excel_font=None,
@@ -83,11 +96,11 @@ RULES: list[HighlightRule] = [
         target_cells=lambda df: [Columns.PROPOSTA] if Columns.PROPOSTA in df.columns else [],
         css_web=f"background-color: {Highlight.RUTURA_BG}; color: {Highlight.RUTURA_FG}; font-weight: bold",
         excel_fill=PatternFill(
-            start_color=Highlight.RUTURA_BG.replace("#", ""),
-            end_color=Highlight.RUTURA_BG.replace("#", ""),
+            start_color=_to_openpyxl_rgb(Highlight.RUTURA_BG),
+            end_color=_to_openpyxl_rgb(Highlight.RUTURA_BG),
             fill_type="solid",
         ),
-        excel_font=Font(color=Highlight.RUTURA_FG.replace("#", ""), bold=True),
+        excel_font=Font(color=_to_openpyxl_rgb(Highlight.RUTURA_FG), bold=True),
         precedence=3,
     ),
     HighlightRule(
@@ -96,8 +109,8 @@ RULES: list[HighlightRule] = [
         target_cells=lambda df: [Columns.DTVAL] if Columns.DTVAL in df.columns else [],
         css_web=f"background-color: {Highlight.VALIDADE_BG}; font-weight: bold",
         excel_fill=PatternFill(
-            start_color=Highlight.VALIDADE_BG.replace("#", ""),
-            end_color=Highlight.VALIDADE_BG.replace("#", ""),
+            start_color=_to_openpyxl_rgb(Highlight.VALIDADE_BG),
+            end_color=_to_openpyxl_rgb(Highlight.VALIDADE_BG),
             fill_type="solid",
         ),
         excel_font=Font(bold=True),
@@ -113,7 +126,7 @@ RULES: list[HighlightRule] = [
         ),
         css_web="color: #FF0000; font-weight: bold",
         excel_fill=None,
-        excel_font=Font(color="FF0000", bold=True),
+        excel_font=Font(color=_to_openpyxl_rgb("#FF0000"), bold=True),
         precedence=5,
     ),
 ]

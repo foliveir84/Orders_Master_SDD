@@ -1025,7 +1025,7 @@ class FileError(NamedTuple):
 
 ---
 
-## FASE 6 — Formatação e Exportação
+## [x] FASE 6 — Formatação e Exportação
 
 ### TASK-40 — [x] `formatting/rules.py` (SSOT)
 **Objectivo:** Criar fonte única de verdade (SSOT) para regras de formatação condicional consumida por web_styler e excel_formatter.
@@ -1111,18 +1111,18 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-43 — Teste de paridade Web↔Excel
+### [x] TASK-43 — Teste de paridade Web↔Excel
 **Objectivo:** Criar teste automatizado que verifica que `build_styler()` e `build_excel()` produzem as mesmas cores nas mesmas células.
 **Referência PRD:** → PRD §6.3.6, §8.13
 **Bloqueado por:** TASK-41, TASK-42
 **Input:** Ambos os formatters implementados.
 **Output esperado:**
 - `tests/unit/test_web_excel_parity.py` com:
-  - Fixture DataFrame cobrindo todos os cenários (Grupo, Não Comprar, Rutura, Validade, Preço anómalo, normal).
-  - Verifica que para cada célula, a cor aplicada pelo Styler CSS e a cor aplicada pelo openpyxl são equivalentes.
+  - [x] Fixture DataFrame cobrindo todos os cenários (Grupo, Não Comprar, Rutura, Validade, Preço anómalo, normal).
+  - [x] Verifica que para cada célula, a cor aplicada pelo Styler CSS e a cor aplicada pelo openpyxl são equivalentes.
 **Critérios de Aceitação:**
-- [ ] Teste passa com fixture que contém todos os 5 tipos de regra.
-- [ ] Qualquer divergência de cor → teste falha com mensagem clara indicando a célula e as cores divergentes.
+- [x] Teste passa com fixture que contém todos os 5 tipos de regra.
+- [x] Qualquer divergência de cor → teste falha com mensagem clara indicando a célula e as cores divergentes.
 **Notas de Implementação:**
 - Extrair cores CSS do `Styler.to_html()` (parse background-color).
 - Extrair cores openpyxl do workbook gerado (`ws.cell(row, col).fill.fgColor`).

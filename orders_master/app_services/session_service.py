@@ -1,6 +1,6 @@
 import logging
-from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 import pandas as pd
@@ -119,7 +119,9 @@ def load_infoprex_files(  # noqa: PLR0913
     if not files:
         return []
 
-    def process_single_file(file_like: Any) -> tuple[pd.DataFrame | None, FileInventoryEntry | None, Exception | None]:
+    def process_single_file(
+        file_like: Any,
+    ) -> tuple[pd.DataFrame | None, FileInventoryEntry | None, Exception | None]:
         try:
             df, entry = parse_infoprex_file(file_like, lista_cla, lista_codigos, locations_aliases)
             # Preço anomalias
@@ -134,17 +136,17 @@ def load_infoprex_files(  # noqa: PLR0913
 
     dfs = []
     n = len(files)
-    
+
     # Usar ThreadPoolExecutor para paralelismo I/O + GIL-releasing pandas operations
     # Limitar threads para evitar overhead excessivo em máquinas pequenas
     max_workers = min(len(files), 4)
-    
+
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         results = list(executor.map(process_single_file, files))
 
     for i, (df, entry, error) in enumerate(results):
         filename = getattr(files[i], "name", f"ficheiro_{i+1}")
-        
+
         if error:
             msg = str(error)
             error_type = "unknown"
@@ -152,18 +154,17 @@ def load_infoprex_files(  # noqa: PLR0913
                 error_type = "encoding"
             elif isinstance(error, InfoprexSchemaError):
                 error_type = "schema"
-            
+
             state.file_errors.append(FileError(filename, error_type, msg))
             state.file_inventory.append(
                 FileInventoryEntry(filename=filename, status="error", error_message=msg)
             )
             if error_type == "unknown":
                 logger.exception("Erro inesperado ao processar o ficheiro %s", filename)
-        else:
-            if df is not None and entry is not None:
-                state.file_inventory.append(entry)
-                dfs.append(df)
-        
+        elif df is not None and entry is not None:
+            state.file_inventory.append(entry)
+            dfs.append(df)
+
         if progress_callback:
             progress_callback((i + 1) / n, f"Concluído '{filename}' ({i+1}/{n})")
 

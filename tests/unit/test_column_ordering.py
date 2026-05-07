@@ -5,7 +5,6 @@ Garante que o invariante posicional de colunas é mantido (ADR-004).
 """
 
 import pandas as pd
-import pytest
 
 from orders_master.aggregation.aggregator import reorder_columns
 from orders_master.constants import Columns

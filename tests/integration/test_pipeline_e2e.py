@@ -5,7 +5,7 @@ Valida o fluxo end-to-end: Ingestão -> Integração -> Agregação -> Recálcul
 """
 
 import io
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -65,7 +65,7 @@ def test_pipeline_full_flow(mock_infoprex_content, mock_brands_content) -> None:
     # 2. Verificar Agregação Inicial
     assert not state.df_aggregated.empty, f"df_aggregated is empty. Raw: {state.df_raw}"
     assert Columns.T_UNI in state.df_aggregated.columns
-    
+
     cols = list(state.df_aggregated.columns)
     idx_tuni = cols.index(Columns.T_UNI)
     # Procurar o bloco de meses (MAI deve estar logo antes de T Uni)
@@ -108,16 +108,19 @@ def test_pipeline_with_integration_mocks(mock_infoprex_content) -> None:
     )
 
     with patch("streamlit.secrets") as mock_secrets:
+
         def mock_get(key, default=None):
             if key == "SHORTAGES_URL":
                 return "http://fake_shortages"
             if key == "DONOTBUY_URL":
                 return "http://fake_dnb"
             return default
+
         mock_secrets.get.side_effect = mock_get
 
         with patch(
-            "orders_master.app_services.session_service.fetch_shortages_db", return_value=df_shortages
+            "orders_master.app_services.session_service.fetch_shortages_db",
+            return_value=df_shortages,
         ):
             with patch(
                 "orders_master.integrations.donotbuy.fetch_donotbuy_list", return_value=df_dnb
@@ -132,7 +135,9 @@ def test_pipeline_with_integration_mocks(mock_infoprex_content) -> None:
                 )
 
     # Verificar se dados foram injectados
-    assert state.shortages_data_consulta == "2024-05-15", f"Consultation date mismatch. State: {state.shortages_data_consulta}"
+    assert (
+        state.shortages_data_consulta == "2024-05-15"
+    ), f"Consultation date mismatch. State: {state.shortages_data_consulta}"
     assert Columns.DATA_OBS in state.df_raw.columns
     assert Columns.DIR in state.df_raw.columns
     assert state.df_raw[Columns.DATA_OBS].iloc[0] == "10-05-2024"
