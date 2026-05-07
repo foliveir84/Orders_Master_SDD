@@ -1227,7 +1227,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-39 — Testes de performance
+### [x] TASK-39 — Testes de performance
 **Objectivo:** Criar benchmarks de performance para validar NFR-P1 (ingestão ≤15s) e NFR-P2 (recálculo ≤500ms).
 **Referência PRD:** → PRD §7.1
 **Bloqueado por:** TASK-23, TASK-24, TASK-35
@@ -1240,9 +1240,9 @@ class FileError(NamedTuple):
   - Benchmark de `recalculate_proposal` com DataFrame de 1000+ linhas.
   - Target: ≤ 500ms.
 **Critérios de Aceitação:**
-- [ ] Benchmarks correm com `pytest-benchmark`.
-- [ ] Resultados reportados em CI (informativo, não bloqueante inicialmente).
-- [ ] Fixtures de tamanho realista (geradas programaticamente se necessário).
+- [x] Benchmarks correm com `pytest-benchmark`.
+- [x] Resultados reportados em CI (informativo, não bloqueante inicialmente).
+- [x] Fixtures de tamanho realista (geradas programaticamente se necessário).
 **Notas de Implementação:**
 - Pode usar `pytest.mark.slow` para evitar correr em cada commit.
 - Fixtures grandes: gerar DataFrame com `np.random` de tamanho similar ao real.
