@@ -176,6 +176,11 @@ def aggregate(
         Columns.MARCA,
         Columns.MEDIA,
         Columns.PROPOSTA,
+        Columns.DIR,
+        Columns.DPR,
+        Columns.DATA_OBS,
+        Columns.TIME_DELTA,
+        Columns.SORT_KEY,
     }
     sales_cols = [c for c in df_work.columns if c not in known_non_sales]
 

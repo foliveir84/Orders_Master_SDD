@@ -109,8 +109,22 @@ def render_main(
     # 13. Tabela Formatada (TASK-41)
     if not df_final.empty:
         styler = build_styler(df_final)
+        
+        # Colunas a esconder (técnicas/auxiliares)
+        hide_cols = [
+            Columns.DIR, Columns.DPR, Columns.DATA_OBS, 
+            Columns.TIME_DELTA, Columns.PRICE_ANOMALY, 
+            Columns.SORT_KEY, Columns.CLA
+        ]
+        column_config = {col: None for col in hide_cols if col in df_final.columns}
+
         # Configuração Streamlit para tabelas grandes
-        st.dataframe(styler, use_container_width=True, height=600)
+        st.dataframe(
+            styler, 
+            use_container_width=True, 
+            height=600,
+            column_config=column_config
+        )
 
         # 14. Botão Download Excel (TASK-42)
         scope_tag = compute_scope_tag(
