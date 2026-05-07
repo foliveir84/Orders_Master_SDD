@@ -69,13 +69,14 @@ def reorder_columns(df: pd.DataFrame, detailed: bool) -> pd.DataFrame:
         Columns.LOCALIZACAO,
         "PVP_Médio",
         "P.CUSTO",
+        "P.CUSTO_Médio",
         Columns.DUC,
         Columns.DTVAL,
-        Columns.STOCK,
     ]
     
     after_months = [
         Columns.T_UNI,
+        Columns.STOCK,
         Columns.PROPOSTA,
         Columns.DIR,
         Columns.DPR,
@@ -283,7 +284,7 @@ def aggregate(
     if Columns.PVP in df_agg.columns:
         rename_map[Columns.PVP] = "PVP_Médio"
     if Columns.P_CUSTO in df_agg.columns:
-        rename_map[Columns.P_CUSTO] = "P.CUSTO"
+        rename_map[Columns.P_CUSTO] = "P.CUSTO" if detailed else "P.CUSTO_Médio"
     if rename_map:
         df_agg = df_agg.rename(columns=rename_map)
 

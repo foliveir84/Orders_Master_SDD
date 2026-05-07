@@ -44,7 +44,7 @@ Cada tarefa segue o template:
 | 4 | [x] Integrações Externas | TASK-15, TASK-16 (em fase 3 pela dependência), TASK-23 a TASK-24 | Google Sheets (Esgotados + Não Comprar), cache strategy, app services. |
 | 5 | [x] UI Streamlit | TASK-25 a TASK-34 | Sidebar, área principal, Scope Bar, File Inventory, toggles, filtros, progress bar. |
 | 6 | Formatação e Exportação | TASK-40 a TASK-43 | Styler web, openpyxl Excel, SSOT de rules, nome dinâmico, teste de paridade. |
-| 7 | Testes e Validação | TASK-35 a TASK-39, TASK-44 a TASK-50 | Testes unitários, integração, performance, CI/CD, docs, linting. |
+| 7 | [x] Testes e Validação | TASK-35 a TASK-39, TASK-44 a TASK-50 | Testes unitários, integração, performance, CI/CD, docs, linting. |
 
 ---
 
