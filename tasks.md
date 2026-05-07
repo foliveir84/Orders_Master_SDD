@@ -1181,22 +1181,22 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-37 — Teste fronteira de ano + parallel parsing benchmark
+### [x] TASK-37 — Teste fronteira de ano + parallel parsing benchmark
 **Objectivo:** Criar teste de integração para renomeação de meses em fronteira de ano e benchmark de parallel parsing.
 **Referência PRD:** → PRD §5.1.6, §8.11, §8.13
 **Bloqueado por:** TASK-11, TASK-35
 **Input:** Parser, fixtures.
 **Output esperado:**
 - `tests/integration/test_boundary_year.py` com:
-  - `test_month_names_across_years` — `data_max = 15/01/2026` com 15 meses → nomes de OUT.1 2024 a JAN 2026 correctos.
-  - `test_no_duplicate_month_names_collision` — sufixos `.1`, `.2` quando > 12 meses.
+  - [x] `test_month_names_across_years` — `data_max = 15/01/2026` com 15 meses → nomes de OUT.1 2024 a JAN 2026 correctos.
+  - [x] `test_no_duplicate_month_names_collision` — sufixos `.1`, `.2` quando > 12 meses.
 - `tests/integration/test_parallel_parsing.py` (ou `tests/performance/`) com:
-  - Benchmark sequencial vs paralelo com 4 fixtures.
-  - Speedup ≥ 2× em máquinas com ≥ 4 cores.
+  - [x] Benchmark sequencial vs paralelo com 4 fixtures.
+  - [x] Speedup ≥ 2× em máquinas com ≥ 4 cores.
 **Critérios de Aceitação:**
-- [ ] Fronteira de ano: nomes de meses abrangem 2024-2026 correctamente.
-- [ ] Duplicados: JAN aparece 2× → segundo é `JAN.1`.
-- [ ] Benchmark: parallel ≥ 2× speedup (ou skip se < 4 cores).
+- [x] Fronteira de ano: nomes de meses abrangem 2024-2026 correctamente.
+- [x] Duplicados: JAN aparece 2× → segundo é `JAN.1`.
+- [x] Benchmark: parallel ≥ 2× speedup (ou skip se < 4 cores).
 **Notas de Implementação:**
 - Para boundary year, criar fixture com `DUV = 15/01/2026` e `V14` = OUT 2024.
 - Benchmark: `pytest-benchmark` com `group` para comparação.

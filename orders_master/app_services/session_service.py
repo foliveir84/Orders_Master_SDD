@@ -1,4 +1,5 @@
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Callable
 from typing import Any
 
@@ -54,19 +55,29 @@ def process_orders_session(  # noqa: PLR0913
     try:
         import streamlit as st  # noqa: PLC0415
 
-        url = st.secrets.get("SHORTAGES_URL")
-        if url:
-            df_shortages = fetch_shortages_db(url)
+        from orders_master.integrations.donotbuy import fetch_donotbuy_list, merge_donotbuy
+
+        url_shortages = st.secrets.get("SHORTAGES_URL")
+        if url_shortages:
+            df_shortages = fetch_shortages_db(url_shortages)
             if not df_shortages.empty:
                 # O merge injecta TimeDelta (necessário para cálculos) e DIR/DPR (para visualização)
                 df_full = merge_shortages(df_full, df_shortages)
 
                 # Guardar data da consulta para o banner
-                # Procurar a coluna no df_shortages original (merge_shortages a dropa)
                 if "Data da Consulta" in df_shortages.columns:
                     state.shortages_data_consulta = str(df_shortages["Data da Consulta"].iloc[0])
+
+        # 2.6 Integrar lista Não Comprar (TASK-37)
+        url_dnb = st.secrets.get("DONOTBUY_URL")
+        if url_dnb:
+            df_dnb = fetch_donotbuy_list(url_dnb, locations_aliases)
+            if not df_dnb.empty:
+                # O merge injecta DATA_OBS no df_full (raw/detalhado)
+                df_full = merge_donotbuy(df_full, df_dnb, detailed=True)
+
     except Exception:
-        logger.exception("Falha ao integrar BD de Rupturas")
+        logger.exception("Falha ao integrar bases de dados externas (Rupturas/Não Comprar)")
 
     state.df_raw = df_full
 
@@ -103,49 +114,57 @@ def load_infoprex_files(  # noqa: PLR0913
     progress_callback: Callable[[float, str], None] | None = None,
 ) -> list[pd.DataFrame]:
     """
-    Processa uma lista de ficheiros Infoprex, preenche o estado com erros tipados
-    e o inventário de ficheiros. Retorna a lista de DataFrames válidos.
+    Processa uma lista de ficheiros Infoprex em paralelo.
     """
-    dfs = []
-    n = len(files)
+    if not files:
+        return []
 
-    for i, file_like in enumerate(files):
-        filename = getattr(file_like, "name", "desconhecido")
-
-        if progress_callback:
-            progress_callback((i + 1) / n, f"A processar '{filename}' ({i+1}/{n})")
-
+    def process_single_file(file_like: Any) -> tuple[pd.DataFrame | None, FileInventoryEntry | None, Exception | None]:
         try:
             df, entry = parse_infoprex_file(file_like, lista_cla, lista_codigos, locations_aliases)
-
-            # Adiciona anomalias de preço (contagem) ao FileInventoryEntry
+            # Preço anomalias
             if Columns.PRICE_ANOMALY in df.columns:
                 anomalies = df[Columns.PRICE_ANOMALY].sum()
                 if anomalies > 0:
                     prefix = " | " if entry.avisos else ""
                     entry.avisos += f"{prefix}Anomalias de preço: {anomalies}"
-
-            state.file_inventory.append(entry)
-            dfs.append(df)
-
-        except InfoprexEncodingError as e:
-            msg = str(e)
-            state.file_errors.append(FileError(filename, "encoding", msg))
-            state.file_inventory.append(
-                FileInventoryEntry(filename=filename, status="error", error_message=msg)
-            )
-        except InfoprexSchemaError as e:
-            msg = str(e)
-            state.file_errors.append(FileError(filename, "schema", msg))
-            state.file_inventory.append(
-                FileInventoryEntry(filename=filename, status="error", error_message=msg)
-            )
+            return df, entry, None
         except Exception as e:
-            msg = f"Erro inesperado: {e}"
-            logger.exception("Erro inesperado ao processar o ficheiro %s", filename)
-            state.file_errors.append(FileError(filename, "unknown", msg))
+            return None, None, e
+
+    dfs = []
+    n = len(files)
+    
+    # Usar ThreadPoolExecutor para paralelismo I/O + GIL-releasing pandas operations
+    # Limitar threads para evitar overhead excessivo em máquinas pequenas
+    max_workers = min(len(files), 4)
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        results = list(executor.map(process_single_file, files))
+
+    for i, (df, entry, error) in enumerate(results):
+        filename = getattr(files[i], "name", f"ficheiro_{i+1}")
+        
+        if error:
+            msg = str(error)
+            error_type = "unknown"
+            if isinstance(error, InfoprexEncodingError):
+                error_type = "encoding"
+            elif isinstance(error, InfoprexSchemaError):
+                error_type = "schema"
+            
+            state.file_errors.append(FileError(filename, error_type, msg))
             state.file_inventory.append(
                 FileInventoryEntry(filename=filename, status="error", error_message=msg)
             )
+            if error_type == "unknown":
+                logger.exception("Erro inesperado ao processar o ficheiro %s", filename)
+        else:
+            if df is not None and entry is not None:
+                state.file_inventory.append(entry)
+                dfs.append(df)
+        
+        if progress_callback:
+            progress_callback((i + 1) / n, f"Concluído '{filename}' ({i+1}/{n})")
 
     return dfs
