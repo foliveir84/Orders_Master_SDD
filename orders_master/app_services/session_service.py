@@ -1,4 +1,5 @@
 import logging
+import os
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
@@ -139,7 +140,9 @@ def load_infoprex_files(  # noqa: PLR0913
 
     # Usar ThreadPoolExecutor para paralelismo I/O + GIL-releasing pandas operations
     # Limitar threads para evitar overhead excessivo em máquinas pequenas
-    max_workers = min(len(files), 4)
+    max_workers = min(len(files), os.cpu_count() or 4)
+    # Cap para evitar explosão de threads em máquinas muito grandes
+    max_workers = min(max_workers, 8)
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         results = list(executor.map(process_single_file, files))
