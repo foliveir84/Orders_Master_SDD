@@ -1341,7 +1341,7 @@ class FileError(NamedTuple):
 
 ---
 
-### TASK-48 — Coverage gate ≥ 80%
+### [x] TASK-48 — Coverage gate ≥ 80%
 **Objectivo:** Garantir cobertura de testes ≥ 80% no package `orders_master/`.
 **Referência PRD:** → PRD §7.3 (NFR-M2), §8.13
 **Bloqueado por:** TASK-35 a TASK-39
@@ -1350,8 +1350,8 @@ class FileError(NamedTuple):
 - `pytest --cov=orders_master --cov-fail-under=80` → exit 0.
 - Relatório de cobertura gerado.
 **Critérios de Aceitação:**
-- [ ] Cobertura ≥ 80% em `orders_master/`.
-- [ ] CI falha se cobertura cair abaixo de 80%.
+- [x] Cobertura ≥ 80% em `orders_master/`.
+- [x] CI falha se cobertura cair abaixo de 80%.
 - [ ] Ficheiros de configuração/stub podem ter cobertura mais baixa (mas o aggregate é ≥ 80%).
 **Notas de Implementação:**
 - Configurar `[tool.coverage.run]` em `pyproject.toml` com `source = ["orders_master"]`.

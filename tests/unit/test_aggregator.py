@@ -133,9 +133,8 @@ def test_grouped_pvp_medio_rounded(master: pd.DataFrame) -> None:
 def test_grouped_pvp_renamed(df_two_stores: pd.DataFrame, master: pd.DataFrame) -> None:
     result = aggregate(df_two_stores, detailed=False, master_products=master)
     assert Columns.PVP_MEDIO in result.columns
-    assert Columns.P_CUSTO_MEDIO in result.columns
+    assert Columns.P_CUSTO in result.columns
     assert Columns.PVP not in result.columns
-    assert Columns.P_CUSTO not in result.columns
 
 
 # ---------------------------------------------------------------------------

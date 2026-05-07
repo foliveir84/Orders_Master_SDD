@@ -35,6 +35,7 @@ def test_process_orders_session_success(session_state) -> None:
         codes_file=None,
         brands_files=[brands_file],
         labs_selected=["LAB1"],
+        labs_config=None,
         locations_aliases={},
         state=session_state,
     )
@@ -65,6 +66,7 @@ def test_process_orders_session_with_codes(session_state) -> None:
         codes_file=codes_file,
         brands_files=[],
         labs_selected=["LAB2"],  # Deveria ser ignorado
+        labs_config=None,
         locations_aliases={},
         state=session_state,
     )

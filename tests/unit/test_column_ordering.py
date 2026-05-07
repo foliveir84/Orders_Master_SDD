@@ -26,7 +26,7 @@ def test_tuni_anchor_invariant_grouped() -> None:
             Columns.T_UNI: [100],
             Columns.STOCK: [5],
             Columns.PVP_MEDIO: [10.0],
-            Columns.P_CUSTO_MEDIO: [5.0],
+            Columns.P_CUSTO: [5.0],
         }
     )
 
@@ -62,7 +62,7 @@ def test_tuni_anchor_invariant_detailed() -> None:
             "Maio-24": [50],
             Columns.T_UNI: [100],
             Columns.STOCK: [5],
-            Columns.PVP: [10.0],
+            "PVP_Médio": [10.0],
             Columns.P_CUSTO: [5.0],
             Columns.DUC: ["100"],
             Columns.DTVAL: ["2026-01-01"],

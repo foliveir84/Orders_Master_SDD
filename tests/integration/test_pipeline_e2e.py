@@ -52,6 +52,7 @@ def test_pipeline_full_flow(mock_infoprex_content, mock_brands_content) -> None:
             codes_file=None,
             brands_files=[brands_file],
             labs_selected=[],
+            labs_config=None,
             locations_aliases={},
             state=state,
         )
@@ -130,6 +131,7 @@ def test_pipeline_with_integration_mocks(mock_infoprex_content) -> None:
                     codes_file=None,
                     brands_files=[],
                     labs_selected=[],
+                    labs_config=None,
                     locations_aliases={},
                     state=state,
                 )
