@@ -413,3 +413,396 @@ O PRD §8.14 e §6.3.4 usam `st.secrets["google_sheets"]["shortages_url"]` (sec�
 **Critério de aceitação:** `secrets_loader.py` é o único ponto de acesso a secrets; `session_service.py` não importa `streamlit` directamente para secrets; testes continuam a passar.
 
 ---
+
+## FASE 4 — Correcções de Constants e Dataclasses (Prioridade MÉDIA)
+
+### T2-13 — Completar constants.py com campos em falta
+
+- **Veredicto:** PC (PRD Correcto, corrigir Código)
+- **Divergência:** #23
+- **Ficheiros afectados:**
+  - `orders_master/constants.py`
+  - `orders_master/formatting/rules.py` (refactor para usar constants)
+
+**Descrição:**
+
+O PRD §8.2 define constantes que não existem no código ou têm nomes diferentes. Os valores de foreground do `Highlight` estão hardcoded em `rules.py` em vez de referenciados a partir de `constants.py`.
+
+**Acções:**
+
+1. Adicionar a `Highlight` em `constants.py`:
+   ```python
+   NAO_COMPRAR_FG = '#000000'
+   RUTURA_FG = '#FFFFFF'
+   VALIDADE_FG = '#000000'
+   ```
+
+2. Adicionar a `Limits` em `constants.py`:
+   ```python
+   STYLER_MAX_ELEMENTS = 1_000_000
+   CODIGO_LOCAL_PREFIX = '1'
+   MESES_COUNT = 15
+   ```
+
+3. Renomear `MEDIA_WINDOW_SIZE` para `MEDIA_WINDOW` (alinhar com PRD).
+
+4. Refactor `rules.py` para usar `Highlight.NAO_COMPRAR_FG`, `Highlight.RUTURA_FG`, `Highlight.VALIDADE_FG` em vez de valores hardcoded.
+
+**Critério de aceitação:** `grep -r "#000000\|#FFFFFF\|#FF0000" orders_master/formatting/rules.py` devolve apenas referências a constants; testes passam.
+
+---
+
+### T2-14 — Adicionar campo preset_pesos ao ScopeContext
+
+- **Veredicto:** PC (PRD Correcto, corrigir Código)
+- **Divergência:** #21
+- **Ficheiros afectados:**
+  - `orders_master/app_services/session_state.py`
+  - `ui/scope_bar.py`
+  - `orders_master/app_services/recalc_service.py`
+
+**Descrição:**
+
+O PRD §8.7 exige que o Scope Summary Bar mostre o preset activo (ex: "Padrão", "Conservador"). O `ScopeContext` no código não tem campo `preset_pesos`.
+
+**Acções:**
+
+1. Adicionar campo a `ScopeContext`:
+   ```python
+   preset_pesos: str = ""  # ex: "Padrão", "Conservador", "Agressivo", "Custom"
+   ```
+
+2. Actualizar `recalc_service.py` para popular o campo quando o scope_context é actualizado.
+
+3. Actualizar `ui/scope_bar.py` para exibir o preset.
+
+**Critério de aceitação:** O Scope Summary Bar mostra o preset activo; o campo está presente no dataclass.
+
+---
+
+### T2-15 — Adicionar campo anomalias_preco ao FileInventoryEntry
+
+- **Veredicto:** PC (PRD Correcto, corrigir Código)
+- **Divergência:** #22
+- **Ficheiros afectados:**
+  - `orders_master/app_services/session_state.py`
+  - `orders_master/app_services/session_service.py`
+  - `ui/file_inventory.py`
+
+**Descrição:**
+
+O PRD §8.8 exige que o File Inventory mostre a contagem de anomalias de preço por ficheiro. O código compensa concatenando no campo `avisos`, mas deveria ter um campo dedicado.
+
+**Acções:**
+
+1. Adicionar campo a `FileInventoryEntry`:
+   ```python
+   anomalias_preco: int = 0
+   ```
+
+2. Actualizar `session_service.py:140-144` para popular o campo dedicado em vez de concatenar em `avisos`.
+
+3. Actualizar `ui/file_inventory.py` para exibir a contagem de anomalias como coluna separada.
+
+**Critério de aceitação:** O File Inventory mostra coluna "Anomalias preço" com contagem numérica; o campo `avisos` deixa de conter informação de anomalias.
+
+---
+
+### T2-16 — Alinhar nomes de campos SessionState com PRD
+
+- **Veredicto:** PC (PRD Correcto, corrigir Código)
+- **Divergência:** #4
+- **Ficheiros afectados:**
+  - `orders_master/app_services/session_state.py`
+  - Todos os ficheiros que referenciam `master_products` (deve passar a `df_master_products`)
+
+**Descrição:**
+
+O PRD §4.1.8 usa `df_master_products` mas o código usa `master_products`. Além disso, faltam documentar `df_raw`, `last_brands_selection` e `shortages_data_consulta`.
+
+**Acções:**
+
+1. Renomear `SessionState.master_products` para `SessionState.df_master_products` (alinhar com PRD).
+
+2. Adicionar `df_raw`, `last_brands_selection`, `shortages_data_consulta` à documentação do PRD como campos válidos (T2-05 já cobre isto parcialmente).
+
+3. Actualizar todas as referências a `state.master_products` e `st.session_state["orders_master_state"].master_products` em todo o código.
+
+**Critério de aceitação:** `grep -r "\.master_products" orders_master/ ui/` devolve zero resultados; campo `df_master_products` está presente; testes passam.
+
+---
+
+## FASE 5 — Limpeza Menor de Código (Prioridade BAIXA)
+
+### T2-17 — Remover PriceAnomalyWarning (código morto)
+
+- **Veredicto:** PC (PRD Correcto, corrigir Código)
+- **Divergência:** #8
+- **Ficheiros afectados:**
+  - `orders_master/exceptions.py`
+  - `orders_master/business_logic/price_validation.py`
+  - Qualquer teste que referencie `PriceAnomalyWarning`
+
+**Descrição:**
+
+`PriceAnomalyWarning(UserWarning)` é definida em `exceptions.py:24` mas nunca é emitida via `warnings.warn()`. A coluna booleana `price_anomaly` e a regra 5 em `rules.py` tratam da funcionalidade. A classe é código morto.
+
+**Acções:**
+
+1. Remover `class PriceAnomalyWarning(UserWarning)` de `exceptions.py`.
+
+2. Verificar se algum teste referencia `PriceAnomalyWarning` e actualizar.
+
+3. Verificar se o PRD §5.6.1 deve ser actualizado para reflectir que a anomalia é marcada apenas via flag booleana, não via `UserWarning`.
+
+**Critério de aceitação:** `grep -r "PriceAnomalyWarning" orders_master/` devolve zero; testes passam.
+
+---
+
+### T2-18 — Corrigir encoding_fallback.py (on_bad_lines e errors)
+
+- **Veredicto:** AM (Ambos precisam de ajuste)
+- **Divergência:** #10
+- **Ficheiros afectados:** `orders_master/ingestion/encoding_fallback.py`
+
+**Descrição:**
+
+O código usa `on_bad_lines="error"` mas o PRD/TASK-09 referem `errors='strict'`. São parâmetros diferentes:
+- `on_bad_lines` controla linhas mal formatadas no CSV
+- `errors` controla bytes não decodificáveis no encoding
+
+Ambos deviam ser configurados explicitamente.
+
+**Acções:**
+
+1. Adicionar `errors='strict'` ao `pd.read_csv()` para forçar falha se o encoding tiver bytes inválidos (em vez de `except Exception: continue` comer tudo).
+
+2. Mudar `on_bad_lines` de `"error"` para `"skip"` — linhas mal formatadas devem ser ignoradas silenciosamente (consistente com o comportamento de `brands_parser.py` que usa `on_bad_lines='skip'`). Isto evita que um ficheiro com uma linha corrompida faça falhar todo o parsing.
+
+3. Actualizar PRD §5.1.2 para documentar ambos os parâmetros.
+
+**Critério de aceitação:** `encoding_fallback.py` usa `errors='strict'` e `on_bad_lines='skip'`; linhas mal formatadas são saltadas; bytes inválidos causam `InfoprexEncodingError`.
+
+---
+
+### T2-19 — Extrair componentes UI alerts.py e documentation.py de main_area.py
+
+- **Veredicto:** PC (PRD Correcto, corrigir Código)
+- **Divergência:** #2
+- **Ficheiros afectados:**
+  - `ui/main_area.py` → refactor
+  - `ui/alerts.py` → criar novo
+  - `ui/documentation.py` → criar novo
+
+**Descrição:**
+
+O PRD §3.2 e §3.4 especificam dois módulos UI separados: `ui/alerts.py` com `render_errors_and_warnings()` e `ui/documentation.py` com `render_help_expander()`. A lógica está integrada em `main_area.py`.
+
+**Acções:**
+
+1. Criar `ui/alerts.py` com função `render_errors_and_warnings(state: SessionState)` que exibe `st.error()` para cada erro e `st.warning()` para filtros obsoletos.
+
+2. Criar `ui/documentation.py` com função `render_help_expander()` que exibe o expander "ℹ️ Documentação e Workflow".
+
+3. Refactor `main_area.py` para importar e chamar estas funções em vez de ter lógica inline.
+
+**Critério de aceitação:** Ambos os ficheiros existem; `main_area.py` reduz linhas; funcionalidade não muda.
+
+---
+
+## FASE 6 — Actualizações de Documentação do PRD (Prioridade BAIXA)
+
+### T2-20 — Actualizar PRD §3.2: "4 regras" → "5 regras"
+
+- **Veredicto:** CC (Código Correcto, actualizar PRD)
+- **Divergência:** #6
+- **Ficheiros afectados:** `prd.md`
+
+**Descrição:**
+
+O PRD §3.2 diz "4 regras visuais" mas o §6.1.6 lista 5 regras e o código define 5. O §3.2 está desactualizado.
+
+**Acções:**
+
+Actualizar §3.2 tabela de `formatting/rules.py` de:
+> Encapsula as **4 regras visuais** (grupo, não comprar, rutura, validade).
+
+Para:
+> Encapsula as **5 regras visuais** (grupo, não comprar, rutura, validade, preço anómalo).
+
+**Critério de aceitação:** Pesquisa por "4 regras" no PRD devolve zero resultados.
+
+---
+
+### T2-21 — Adicionar DetailedRowSchema à lista de §3.2
+
+- **Veredicto:** CC (Código Correcto, actualizar PRD)
+- **Divergência:** #7
+- **Ficheiros afectados:** `prd.md`
+
+**Descrição:**
+
+O PRD §3.2 lista 5 schemas mas omite `DetailedRowSchema`, que existe no código e é descrito em §4.1.3.
+
+**Acções:**
+
+Actualizar §3.2 tabela de schemas de:
+> `orders_master/schemas.py` | Domínio — Contratos | Define os schemas tipados (pydantic): `InfoprexRowSchema`, `AggregatedRowSchema`, `ShortageRowSchema`, `DoNotBuyRowSchema`, `BrandRowSchema`.
+
+Para:
+> `orders_master/schemas.py` | Domínio — Contratos | Define os schemas tipados (pydantic): `InfoprexRowSchema`, `AggregatedRowSchema`, `DetailedRowSchema`, `ShortageRowSchema`, `DoNotBuyRowSchema`, `BrandRowSchema`.
+
+**Critério de aceitação:** `DetailedRowSchema` aparece na lista de §3.2.
+
+---
+
+### T2-22 — Adicionar ficheiros em falta à estrutura §3.4
+
+- **Veredicto:** CC (Código Correcto, actualizar PRD)
+- **Divergência:** #14
+- **Ficheiros afectados:** `prd.md`
+
+**Descrição:**
+
+Os seguintes ficheiros existem no código mas não estão na árvore de directorias do PRD §3.4:
+- `orders_master/config/validate.py`
+- `orders_master/config/presets_loader.py`
+- `orders_master/secrets_loader.py` (deve ser movido para `orders_master/config/` na T2-12)
+
+**Acções:**
+
+Adicionar à árvore de §3.4:
+```
+│   ├── config/
+│   │   ├── __init__.py
+│   │   ├── labs_loader.py
+│   │   ├── locations_loader.py
+│   │   ├── presets_loader.py          # NOVO
+│   │   ├── secrets_loader.py          # NOVO (após T2-12)
+│   │   └── validate.py               # NOVO
+│   └── secrets_loader.py              # MOVER para config/ na T2-12
+```
+
+**Critério de aceitação:** Todos os ficheiros de código existentes estão listados na árvore §3.4.
+
+---
+
+### T2-23 — Documentar init defensivo de colunas de integração
+
+- **Veredicto:** CC (Código Correcto, actualizar PRD)
+- **Divergência:** #27
+- **Ficheiros afectados:** `prd.md`
+
+**Descrição:**
+
+O código inicializa colunas de integração (`DIR`, `DPR`, `DATA_OBS`, `TimeDelta`) com `pd.NA` no DataFrame bruto, mesmo quando as integrações falharam. Esta prática defensiva garante que a formatação nunca quebra por KeyError. O PRD não documenta este comportamento.
+
+**Acções:**
+
+Adicionar nota ao PRD §4.1.7 (entidade FinalProposalRow) ou §5.6.2:
+
+> **Nota defensiva:** O pipeline inicializa as colunas de integração (`DIR`, `DPR`, `DATA_OBS`, `TimeDelta`) com `pd.NA` no DataFrame bruto, independentemente de as integrações terem sucesso. Isto garante que as regras de formatação (§6.1.6) nunca falham por KeyError, utilizando `pd.notna()` nos predicates.
+
+**Critério de aceitação:** A prática defensiva está documentada no PRD.
+
+---
+
+### T2-24 — Documentar merge donotbuy sempre detailed=True
+
+- **Veredicto:** CC (Código Correcto, actualizar PRD)
+- **Divergência:** #20
+- **Ficheiros afectados:** `prd.md`
+
+**Descrição:**
+
+O código faz `merge_donotbuy(df_full, df_dnb, detailed=True)` no DataFrame raw (pré-agregação), que é semanticamente correcto porque o raw tem `LOCALIZACAO` por loja. O PRD §6.2.2 especifica duas modalidades de merge (agrupada e detalhada), mas na prática só a detalhada é usada no pipeline pesado.
+
+**Acções:**
+
+Actualizar PRD §6.2.2 para clarificar:
+
+> No pipeline pesado (`process_orders_session`), o merge com "Não Comprar" é sempre executado com `detailed=True` no DataFrame raw (pré-agregação), que contém `LOCALIZACAO` por loja. A coluna `DATA_OBS` resultante é preservada durante a agregação, estando disponível tanto na vista agrupada (após dedup por CNP) como na detalhada.
+
+**Critério de aceitação:** PRD documenta correctamente como o merge donotbuy é executado na prática.
+
+---
+
+### T2-25 — Documentar campos extra do SessionState
+
+- **Veredicto:** CC (Código Correcto, actualizar PRD)
+- **Divergência:** #4
+- **Ficheiros afectados:** `prd.md`
+
+**Descrição:**
+
+O código tem 3 campos em `SessionState` não documentados no PRD §4.1.8: `df_raw`, `last_brands_selection`, `shortages_data_consulta`.
+
+**Acções:**
+
+Adicionar ao PRD §4.1.8 tabela:
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `df_raw` | `pd.DataFrame` | DataFrame bruto pós-ingestão com integrações merged. Usado como input pelo recalc_service. |
+| `last_brands_selection` | `list[str]` | Última selecção de marcas. Usado para detectar filtros obsoletos. |
+| `shortages_data_consulta` | `str \| None` | Data da consulta da BD de Rupturas para exibição no banner. |
+
+**Critério de aceitação:** Todos os campos do SessionState implementado estão documentados no PRD §4.1.8.
+
+---
+
+## Resumo de Dependências entre Tarefas
+
+```
+T2-01 (secrets.toml) ← independente
+T2-02 (remover streamlit domínio) ← independente
+T2-03 (filtro marcas) ← independente
+T2-04 (actualizar ADR-010 PRD) ← independente
+T2-05 (actualizar PRD integrações) ← independente
+T2-06 (actualizar PRD re-agregação) ← independente
+T2-07 (vectorizar shortages) ← independente
+T2-08 (vectorizar donotbuy) ← independente
+T2-09 (lazy merge) ← pode ser feito antes/depois de T2-02
+T2-10 (formato data banner) ← independente
+T2-11 (.env.example) ← dependente de T2-01 (criar .example ao mesmo tempo)
+T2-12 (alinhar secrets) ← dependente de T2-01 e T2-02
+T2-13 (constants) ← independente
+T2-14 (scope context) ← independente
+T2-15 (file inventory) ← independente
+T2-16 (renomear master_products) ← impacto transversal, fazer com cuidado
+T2-17 (remover PriceAnomalyWarning) ← independente
+T2-18 (encoding fallback) ← independente
+T2-19 (extrair UI components) ← independente
+T2-20—T2-25 (PRD updates) ← todas independentes entre si
+```
+
+## Ordem de Execução Recomendada
+
+| Ordem | Tarefa | Prioridade | Veredicto |
+|---|---|---|---|
+| 1 | T2-01 | ALTA | PC |
+| 2 | T2-02 | ALTA | PC |
+| 3 | T2-03 | ALTA | PC |
+| 4 | T2-07 | MÉDIA | PC |
+| 5 | T2-08 | MÉDIA | PC |
+| 6 | T2-09 | MÉDIA | PC |
+| 7 | T2-10 | MÉDIA | PC |
+| 8 | T2-11 | MÉDIA | PC |
+| 9 | T2-12 | MÉDIA | PC |
+| 10 | T2-13 | MÉDIA | PC |
+| 11 | T2-14 | MÉDIA | PC |
+| 12 | T2-15 | MÉDIA | PC |
+| 13 | T2-16 | MÉDIA | PC |
+| 14 | T2-17 | BAIXA | PC |
+| 15 | T2-18 | BAIXA | AM |
+| 16 | T2-18 | BAIXA | PC |
+| 17 | T2-19 | BAIXA | PC |
+| 18 | T2-04 | ALTA | CC |
+| 19 | T2-05 | ALTA | CC |
+| 20 | T2-06 | ALTA | CC |
+| 21 | T2-20 | BAIXA | CC |
+| 22 | T2-21 | BAIXA | CC |
+| 23 | T2-22 | BAIXA | CC |
+| 24 | T2-23 | BAIXA | CC |
+| 25 | T2-24 | BAIXA | CC |
+| 25 | T2-25 | BAIXA | CC |
