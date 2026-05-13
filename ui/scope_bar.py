@@ -36,14 +36,14 @@ def render_scope_summary(state: SessionState) -> None:
 
     # Construção da string de métricas
     metrics = [
-        f"📊 **{ctx.n_produtos}** produtos",
-        f"🏪 **{ctx.n_farmacias}** farmácias",
+        f"📊 <b>{ctx.n_produtos}</b> produtos",
+        f"🏪 <b>{ctx.n_farmacias}</b> farmácias",
         f"🎯 {ctx.descricao_filtro}",
         f"📅 Janela: {janela}",
         f"⚖️ Pesos: {preset}",
-        f"🔮 Previsão: **{months_val:.1f}** m",
-        f"👁️ Modo: **{modo_val}**",
-        f"⏱️ Base: **{base_mes}**",
+        f"🔮 Previsão: <b>{months_val:.1f}</b> m",
+        f"👁️ Modo: <b>{modo_val}</b>",
+        f"⏱️ Base: <b>{base_mes}</b>",
     ]
 
     content = " | ".join(metrics)
