@@ -32,7 +32,7 @@ from ui.sidebar import render_sidebar
 # Configuração global (executado antes de qualquer render)
 # ---------------------------------------------------------------------------
 configure_logging(Path("logs"))
-pd.set_option("styler.render.max_elements", 1_000_000)
+pd.set_option("styler.render.max_elements", 2_000_000)
 
 _LABS_PATH = Path("config/laboratorios.json")
 _LOCS_PATH = Path("config/localizacoes.json")
