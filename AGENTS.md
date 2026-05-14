@@ -28,9 +28,9 @@ mypy --strict orders_master/
 pre-commit run --all-files
 ```
 
-## Architecture
+## Architecture 
 
-**Strict layered architecture — dependency arrows point inward only:**
+**Strict layered  architecture — dependency arrows point inward only:**
 
 ```
 app.py + ui/  →  app_services/  →  domain (orders_master/*)
