@@ -1,0 +1,34 @@
+name: Django CI
+
+on:
+  push:
+    branches: [main, Django_Migration]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: orders_master_saas.settings.development
+      SECRET_KEY: test-secret-key
+      SHORTAGES_SHEET_URL: ""
+      DONOTBUY_SHEET_URL: ""
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          cd orders_master_saas
+          pip install -r requirements.txt -r requirements-dev.txt
+      - name: Check
+        run: |
+          cd orders_master_saas
+          python manage.py check
+      - name: Run tests
+        run: |
+          cd orders_master_saas
+          pytest --tb=short
