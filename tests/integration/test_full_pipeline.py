@@ -57,7 +57,7 @@ def test_full_pipeline_aggregated(
     file2.name = "f2.txt"
 
     # 1. Ingestão (com patch de secrets para evitar requests reais)
-    with patch("streamlit.secrets", {}):
+    with patch("orders_master.secrets_loader.get_secret", return_value=None):
         process_orders_session(
             files=[file1, file2],
             codes_file=None,
@@ -78,7 +78,7 @@ def test_full_pipeline_aggregated(
     df_final = recalculate_proposal(
         df_detailed=state.df_raw,
         detailed_view=False,
-        master_products=state.master_products,
+        df_master_products=state.df_master_products,
         months=2.0,
         weights=(1.0, 0.0, 0.0, 0.0),
         use_previous_month=False,
@@ -117,7 +117,7 @@ def test_full_pipeline_detailed(
     file2 = io.BytesIO(mock_infoprex_content_f2)
     file2.name = "f2.txt"
 
-    with patch("streamlit.secrets", {}):
+    with patch("orders_master.secrets_loader.get_secret", return_value=None):
         process_orders_session(
             files=[file1, file2],
             codes_file=None,
@@ -128,11 +128,11 @@ def test_full_pipeline_detailed(
             state=state,
         )
 
-    # 2. Recálculo Detalhado
+    # 2. Recalc Detalhado
     df_final = recalculate_proposal(
         df_detailed=state.df_raw,
         detailed_view=True,
-        master_products=state.master_products,
+        df_master_products=state.df_master_products,
         months=2.0,
         weights=(1.0, 0.0, 0.0, 0.0),
         use_previous_month=False,

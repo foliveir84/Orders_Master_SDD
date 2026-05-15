@@ -43,7 +43,7 @@ def test_process_orders_session_success(session_state) -> None:
     assert not session_state.df_raw.empty
     assert not session_state.df_aggregated.empty
     assert not session_state.df_detailed.empty
-    assert session_state.master_products[Columns.MARCA].iloc[0] == "MARCA X"
+    assert session_state.df_master_products[Columns.MARCA].iloc[0] == "MARCA X"
     assert session_state.df_raw[Columns.CODIGO].iloc[0] == 2001
     assert session_state.last_labs_selection == ["LAB1"]
     assert session_state.last_codes_file_name is None

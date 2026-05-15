@@ -53,7 +53,7 @@ def sample_detailed_df() -> pd.DataFrame:
 
 
 @pytest.fixture
-def master_products() -> pd.DataFrame:
+def df_master_products() -> pd.DataFrame:
     return pd.DataFrame(
         {
             Columns.CODIGO: [2001],
@@ -63,7 +63,7 @@ def master_products() -> pd.DataFrame:
     )
 
 
-def test_recalc_months_doubles_proposal(sample_detailed_df, master_products) -> None:
+def test_recalc_months_doubles_proposal(sample_detailed_df, df_master_products) -> None:
     """Alterar meses de 1.0 para 2.0 deve duplicar a proposta aprox."""
     weights = (0.25, 0.25, 0.25, 0.25)
 
@@ -71,42 +71,42 @@ def test_recalc_months_doubles_proposal(sample_detailed_df, master_products) -> 
     # Loja A: Media = 10, Stock = 10 -> Proposta = 0
     # Loja B: Media = 5, Stock = 5 -> Proposta = 0
     # Total: 0
-    res1 = recalculate_proposal(sample_detailed_df, False, master_products, 1.0, weights)
+    res1 = recalculate_proposal(sample_detailed_df, False, df_master_products, 1.0, weights)
     assert res1[Columns.PROPOSTA].iloc[0] == 0
 
     # Meses = 2.0 -> Proposta = Media * 2 - Stock
     # Loja A: Media = 10, Stock = 10 -> Proposta = 10
     # Loja B: Media = 5, Stock = 5 -> Proposta = 5
     # Total: 15
-    res2 = recalculate_proposal(sample_detailed_df, False, master_products, 2.0, weights)
+    res2 = recalculate_proposal(sample_detailed_df, False, df_master_products, 2.0, weights)
     assert res2[Columns.PROPOSTA].iloc[0] == 15
 
 
-def test_recalc_detailed_view(sample_detailed_df, master_products) -> None:
+def test_recalc_detailed_view(sample_detailed_df, df_master_products) -> None:
     """Verifica que detailed_view=True retorna linhas por loja + Grupo."""
     weights = (1.0, 0, 0, 0)
-    res = recalculate_proposal(sample_detailed_df, True, master_products, 1.0, weights)
+    res = recalculate_proposal(sample_detailed_df, True, df_master_products, 1.0, weights)
 
     # 2 lojas + 1 grupo = 3 linhas
     assert len(res) == 3
     assert GroupLabels.GROUP_ROW in res[Columns.LOCALIZACAO].values
 
 
-def test_recalc_performance(sample_detailed_df, master_products) -> None:
+def test_recalc_performance(sample_detailed_df, df_master_products) -> None:
     """Performance deve ser < 500ms para 1000 linhas (simulado com repetição)."""
     # Criar 1000 linhas repetindo a fixture
     large_df = pd.concat([sample_detailed_df] * 500, ignore_index=True)
     weights = (0.4, 0.3, 0.2, 0.1)
 
     start = time.perf_counter()
-    recalculate_proposal(large_df, False, master_products, 1.0, weights)
+    recalculate_proposal(large_df, False, df_master_products, 1.0, weights)
     end = time.perf_counter()
 
     duration_ms = (end - start) * 1000
     assert duration_ms < 500
 
 
-def test_recalc_weights_influence(sample_detailed_df, master_products) -> None:
+def test_recalc_weights_influence(sample_detailed_df, df_master_products) -> None:
     """Alterar pesos deve alterar a média ponderada."""
     # Ordem: V4, V3, V2, V1, V0, T Uni
     # Janela default (offset=1): V0, V1, V2, V3. (V4 é ignorado).
@@ -116,12 +116,12 @@ def test_recalc_weights_influence(sample_detailed_df, master_products) -> None:
     df.loc[1, "V0"] = 20
 
     # Pesos (1.0, 0, 0, 0) -> Foca em V0
-    res1 = recalculate_proposal(df, False, master_products, 1.0, (1.0, 0, 0, 0))
+    res1 = recalculate_proposal(df, False, df_master_products, 1.0, (1.0, 0, 0, 0))
     # Loja A: 20, Loja B: 20 -> Total 40
     assert res1[Columns.MEDIA].iloc[0] == 40
 
     # Pesos (0, 0, 0, 1.0) -> Foca em V3
-    res2 = recalculate_proposal(df, False, master_products, 1.0, (0, 0, 0, 1.0))
+    res2 = recalculate_proposal(df, False, df_master_products, 1.0, (0, 0, 0, 1.0))
     # Loja A: 10, Loja B: 5 -> Total 15
     assert res2[Columns.MEDIA].iloc[0] == 15
 
@@ -152,7 +152,7 @@ def test_recalc_brand_filtering(sample_detailed_df) -> None:
     assert res2[Columns.MARCA].iloc[0] == "Marca X"
 
 
-def test_recalc_use_previous_month(sample_detailed_df, master_products) -> None:
+def test_recalc_use_previous_month(sample_detailed_df, df_master_products) -> None:
     """Toggle use_previous_month deve deslocar a janela de média."""
     # Ordem: V4, V3, V2, V1, V0, T Uni
     # V0 é o mais recente.
@@ -161,17 +161,17 @@ def test_recalc_use_previous_month(sample_detailed_df, master_products) -> None:
     df.loc[1, "V0"] = 100
 
     # 1. use_previous_month=False -> Inclui V0.
-    res1 = recalculate_proposal(df, False, master_products, 1.0, (1.0, 0, 0, 0), use_previous_month=False)
+    res1 = recalculate_proposal(df, False, df_master_products, 1.0, (1.0, 0, 0, 0), use_previous_month=False)
     # weights[0] é V0. V0=100 -> Total 200
     assert res1[Columns.MEDIA].iloc[0] == 200
 
     # 2. use_previous_month=True (Ignorar mês corrente) -> Janela [V4, V3, V2, V1]. Pula V0.
-    res2 = recalculate_proposal(df, False, master_products, 1.0, (1.0, 0, 0, 0), use_previous_month=True)
+    res2 = recalculate_proposal(df, False, df_master_products, 1.0, (1.0, 0, 0, 0), use_previous_month=True)
     # weights[0] é V1. V1=10 -> Total 15
     assert res2[Columns.MEDIA].iloc[0] == 15
 
 
-def test_recalc_scope_context_update(sample_detailed_df, master_products) -> None:
+def test_recalc_scope_context_update(sample_detailed_df, df_master_products) -> None:
     """Verifica se o ScopeContext é actualizado com as métricas correctas."""
     from dataclasses import dataclass
 
@@ -185,7 +185,7 @@ def test_recalc_scope_context_update(sample_detailed_df, master_products) -> Non
         ultimo_mes: str = ""
 
     ctx = MockScopeContext()
-    recalculate_proposal(sample_detailed_df, False, master_products, 2.5, (0.4, 0.3, 0.2, 0.1), scope_context=ctx)
+    recalculate_proposal(sample_detailed_df, False, df_master_products, 2.5, (0.4, 0.3, 0.2, 0.1), scope_context=ctx)
 
     assert ctx.n_produtos == 1
     assert ctx.n_farmacias == 2

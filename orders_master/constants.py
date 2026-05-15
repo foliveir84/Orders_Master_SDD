@@ -69,3 +69,13 @@ class Limits:
 
     # Número de meses usados no cálculo da média (janela base)
     MEDIA_WINDOW_SIZE = 4
+
+
+class CSS:
+    """CSS class names for conditional formatting (Django/HTMX templates)."""
+
+    GRUPO = "row-grupo"
+    NAO_COMPRAR = "row-nao-comprar"
+    RUTURA = "cell-rutura"
+    VALIDADE_CURTA = "cell-validade-curta"
+    PRECO_ANOMALO = "cell-preco-anomalo"

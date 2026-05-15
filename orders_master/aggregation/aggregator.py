@@ -19,7 +19,7 @@ from orders_master.constants import Columns, GroupLabels
 # ---------------------------------------------------------------------------
 
 
-def build_master_products(
+def build_df_master_products(
     df: pd.DataFrame,
     df_brands: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
@@ -126,7 +126,7 @@ def reorder_columns(df: pd.DataFrame, detailed: bool) -> pd.DataFrame:
 def aggregate(
     df: pd.DataFrame,
     detailed: bool,
-    master_products: pd.DataFrame,
+    df_master_products: pd.DataFrame,
 ) -> pd.DataFrame:
     """
     Produz a vista agrupada (``detailed=False``) ou a vista detalhada
@@ -137,7 +137,7 @@ def aggregate(
     2. Remover linhas zombie individuais.
     3. Calcular médias de preços excluindo anomalias.
     4. Agregar (sum) colunas de vendas e stock.
-    5. Injectar designações canónicas e marcas de master_products.
+    5. Injectar designações canónicas e marcas de df_master_products.
     6. Remover zombies pós-agregação (grupo total == 0).
     7. Se detalhada: adicionar linhas de Grupo.
     8. Calcular _sort_key.
@@ -147,7 +147,7 @@ def aggregate(
     Args:
         df: DataFrame pós-ingestão.
         detailed: True → inclui linhas por loja + linha Grupo; False → 1 linha/código.
-        master_products: Tabela mestre de produtos (CÓDIGO, DESIGNAÇÃO, MARCA).
+        df_master_products: Tabela mestre de produtos (CÓDIGO, DESIGNAÇÃO, MARCA).
 
     Returns:
         DataFrame agregado conforme a vista pedida.
@@ -256,9 +256,9 @@ def aggregate(
         df_agg = df_agg.reset_index()
 
     # ------------------------------------------------------------------
-    # Passo 5 — Injectar master_products (designação canónica + marca)
+    # Passo 5 — Injectar df_master_products (designação canónica + marca)
     # ------------------------------------------------------------------
-    df_agg = df_agg.merge(master_products, on=Columns.CODIGO, how="left")
+    df_agg = df_agg.merge(df_master_products, on=Columns.CODIGO, how="left")
 
     # ------------------------------------------------------------------
     # Passo 6 — Remover zombies pós-agregação

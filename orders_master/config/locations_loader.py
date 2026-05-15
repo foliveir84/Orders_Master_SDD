@@ -4,10 +4,10 @@ import os
 import re
 from pathlib import Path
 
-import streamlit as st
 from pydantic import RootModel, model_validator
 
 from orders_master.exceptions import ConfigError
+from orders_master.integrations.cache_decorator import cache_decorator
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ def get_file_mtime(path: Path) -> float:
         return 0.0
 
 
-@st.cache_data
+@cache_decorator()
 def load_locations(mtime: float, path: Path = Path("config/localizacoes.json")) -> LocationsConfig:
     """
     Loads and validates localizacoes.json.

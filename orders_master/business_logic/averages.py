@@ -3,6 +3,8 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
+from orders_master.integrations.cache_decorator import cache_decorator
+
 
 def select_window(df: pd.DataFrame, use_previous_month: bool, weights_len: int = 4) -> list[str]:
     """
@@ -46,9 +48,7 @@ def weighted_average(
     return df[cols].fillna(0).dot(w_series)
 
 
-import streamlit as st
-
-@st.cache_data(ttl=3600)
+@cache_decorator(ttl=3600)
 def load_presets(path: str | Path) -> dict[str, tuple[float, ...]]:
     """
     Loader de config/presets.yaml com cache para evitar I/O excessivo.

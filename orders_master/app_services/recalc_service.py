@@ -15,13 +15,13 @@ from orders_master.business_logic.proposals import (
     compute_base_proposal,
     compute_shortage_proposal,
 )
-from orders_master.constants import Columns
+from orders_master.constants import Columns, GroupLabels
 
 
 def recalculate_proposal(  # noqa: PLR0913
     df_detailed: pd.DataFrame,
     detailed_view: bool,
-    master_products: pd.DataFrame,
+    df_master_products: pd.DataFrame,
     months: float,
     weights: tuple[float, ...],
     use_previous_month: bool = False,
@@ -34,7 +34,7 @@ def recalculate_proposal(  # noqa: PLR0913
     Args:
         df_detailed: DataFrame com os dados brutos por loja (pós-ingestão).
         detailed_view: Se True, gera vista com linhas por loja + Grupo.
-        master_products: Tabela mestre para injecção de marcas/designações.
+        df_master_products: Tabela mestre para injecção de marcas/designações.
         months: Meses de previsão para a proposta.
         weights: Pesos para a média ponderada.
         use_previous_month: Se True, ignora o mês mais recente na média.
@@ -51,7 +51,7 @@ def recalculate_proposal(  # noqa: PLR0913
 
     # 0. Filtro por Marcas (TASK-26)
     if marcas:
-        valid_cnps = master_products[master_products[Columns.MARCA].isin(marcas)][Columns.CODIGO]
+        valid_cnps = df_master_products[df_master_products[Columns.MARCA].isin(marcas)][Columns.CODIGO]
         df_work = df_work[df_work[Columns.CODIGO].isin(valid_cnps)]
 
     # 1. Limpeza de colunas de cálculo prévias para evitar duplicados
@@ -69,7 +69,14 @@ def recalculate_proposal(  # noqa: PLR0913
 
     # 4. Agregação Final (Passos 1-10 do motor de agregação)
     # Nota: aggregator.py foi actualizado para somar MEDIA e PROPOSTA
-    df_agg = aggregate(df_work, detailed_view, master_products)
+    df_agg = aggregate(df_work, detailed_view, df_master_products)
+
+    # 4.1 Garantir que as linhas Grupo sobrevivem ao filtro de marcas
+    if marcas and detailed_view and Columns.LOCALIZACAO in df_agg.columns and Columns.MARCA in df_agg.columns:
+        df_agg = df_agg[
+            (df_agg[Columns.LOCALIZACAO] == GroupLabels.GROUP_ROW)
+            | (df_agg[Columns.MARCA].isin(marcas))
+        ].copy()
 
     # 5. Actualizar ScopeContext (TASK-33)
     if scope_context is not None:

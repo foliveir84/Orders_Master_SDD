@@ -6,7 +6,7 @@ from typing import Any
 
 import pandas as pd
 
-from orders_master.aggregation.aggregator import aggregate, build_master_products
+from orders_master.aggregation.aggregator import aggregate, build_df_master_products
 from orders_master.app_services.session_state import FileInventoryEntry, SessionState
 from orders_master.constants import Columns
 from orders_master.exceptions import FileError, InfoprexEncodingError, InfoprexSchemaError
@@ -14,6 +14,7 @@ from orders_master.ingestion.brands_parser import parse_brands_csv
 from orders_master.ingestion.codes_txt_parser import parse_codes_txt
 from orders_master.ingestion.infoprex_parser import parse_infoprex_file
 from orders_master.integrations.shortages import fetch_shortages_db, merge_shortages
+from orders_master.secrets_loader import DONOTBUY_SHEET_URL, SHORTAGES_SHEET_URL, get_secret
 
 logger = logging.getLogger(__name__)
 
@@ -65,11 +66,9 @@ def process_orders_session(  # noqa: PLR0913
 
     # 2.5 Integrar BD de Rupturas (TASK-32)
     try:
-        import streamlit as st  # noqa: PLC0415
-
         from orders_master.integrations.donotbuy import fetch_donotbuy_list, merge_donotbuy
 
-        url_shortages = st.secrets.get("SHORTAGES_URL")
+        url_shortages = get_secret(SHORTAGES_SHEET_URL)
         if url_shortages:
             df_shortages = fetch_shortages_db(url_shortages)
             if not df_shortages.empty:
@@ -81,7 +80,7 @@ def process_orders_session(  # noqa: PLR0913
                     state.shortages_data_consulta = str(df_shortages["Data da Consulta"].iloc[0])
 
         # 2.6 Integrar lista Não Comprar (TASK-37)
-        url_dnb = st.secrets.get("DONOTBUY_URL")
+        url_dnb = get_secret(DONOTBUY_SHEET_URL)
         if url_dnb:
             df_dnb = fetch_donotbuy_list(url_dnb, locations_aliases)
             if not df_dnb.empty:
@@ -95,15 +94,15 @@ def process_orders_session(  # noqa: PLR0913
 
     # 3. Build master products + brands
     df_brands = parse_brands_csv(brands_files) if brands_files else None
-    master = build_master_products(df_full, df_brands)
+    master = build_df_master_products(df_full, df_brands)
 
     # 4. Agregações (detalhada e agrupada)
     # Nota: nestes passos não calculamos propostas ainda, só estrutura
-    state.df_aggregated = aggregate(df_full, detailed=False, master_products=master)
-    state.df_detailed = aggregate(df_full, detailed=True, master_products=master)
+    state.df_aggregated = aggregate(df_full, detailed=False, df_master_products=master)
+    state.df_detailed = aggregate(df_full, detailed=True, df_master_products=master)
 
     # 5. Guardar master products para recálculos futuros
-    state.master_products = master
+    state.df_master_products = master
 
     # 6. Popular ScopeContext inicial (TASK-33)
     state.scope_context.n_produtos = len(state.df_aggregated)

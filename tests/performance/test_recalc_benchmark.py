@@ -33,12 +33,12 @@ def large_aggregated_df() -> pd.DataFrame:
     return pd.DataFrame(data)
 
 @pytest.fixture
-def master_products(large_aggregated_df) -> pd.DataFrame:
-    """Mock do master_products."""
+def df_master_products(large_aggregated_df) -> pd.DataFrame:
+    """Mock do df_master_products."""
     return large_aggregated_df[[Columns.CODIGO, Columns.DESIGNACAO, Columns.MARCA]].copy()
 
 @pytest.mark.benchmark(group="recalc")
-def test_recalculate_proposal_benchmark(benchmark, large_aggregated_df, master_products):
+def test_recalculate_proposal_benchmark(benchmark, large_aggregated_df, df_master_products):
     """
     Benchmark do recálculo de proposta para 5.000 produtos.
     Target: <= 500ms.
@@ -49,7 +49,7 @@ def test_recalculate_proposal_benchmark(benchmark, large_aggregated_df, master_p
         return recalculate_proposal(
             df_detailed=large_aggregated_df,
             detailed_view=False,
-            master_products=master_products,
+            df_master_products=df_master_products,
             months=2.0,
             weights=(0.4, 0.3, 0.2, 0.1),
             use_previous_month=False,

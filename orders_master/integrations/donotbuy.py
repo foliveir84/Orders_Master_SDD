@@ -4,29 +4,22 @@ import pandas as pd
 
 from orders_master.config.locations_loader import map_location
 from orders_master.constants import Columns
+from orders_master.integrations.cache_decorator import cache_decorator
 from orders_master.schemas import DoNotBuyRecordSchema
 
 logger = logging.getLogger(__name__)
 
-try:
-    import streamlit as st
 
-    cache_decorator = st.cache_data(ttl=3600, show_spinner="A carregar lista Não Comprar...")
-except ImportError:
-
-    from collections.abc import Callable
-    from typing import Any, TypeVar
-
-    F = TypeVar("F", bound=Callable[..., Any])
-
-    def cache_decorator(func: F) -> F:
-        return func
-
-
-@cache_decorator
-def fetch_donotbuy_list(url: str, aliases: dict[str, str]) -> pd.DataFrame:
+@cache_decorator(ttl=3600, show_spinner="A carregar lista Não Comprar...")
+def fetch_donotbuy_list(url: str, aliases: dict[str, str], codigos_visible: set[int] | None = None) -> pd.DataFrame:
     """
     Lê a Google Sheet de produtos Não Comprar, formata datas e alinha nomes de farmácia.
+
+    Args:
+        url: URL da Google Sheet.
+        aliases: Mapeamento de termos de pesquisa para aliases de localização.
+        codigos_visible: Conjunto opcional de códigos (CNP) para filtrar antes do merge.
+                         Quando fornecido, reduz o volume de dados integrados.
     """
     empty_df = pd.DataFrame(columns=["CNP", "FARMACIA", "DATA"])
 
@@ -45,14 +38,20 @@ def fetch_donotbuy_list(url: str, aliases: dict[str, str]) -> pd.DataFrame:
     # Parse dates
     df["DATA"] = pd.to_datetime(df["DATA"], format="%d-%m-%Y", errors="coerce")
 
-    # Map locations
-    df["FARMACIA"] = df["FARMACIA"].apply(
-        lambda x: map_location(str(x), aliases) if pd.notna(x) else ""
-    )
+    # Map locations — vectorized via list comprehension
+    df["FARMACIA"] = [
+        map_location(str(x), aliases) if pd.notna(x) else ""
+        for x in df["FARMACIA"]
+    ]
 
     # Sort and drop duplicates, keeping the most recent data
     df = df.sort_values(by=["CNP", "FARMACIA", "DATA"], ascending=[True, True, False])
     df = df.drop_duplicates(subset=["CNP", "FARMACIA"], keep="first")
+
+    # Lazy merge: filter by visible codes when provided
+    if codigos_visible is not None:
+        codigos_str = {str(c) for c in codigos_visible}
+        df = df[df["CNP"].astype(str).str.strip().isin(codigos_str)].copy()
 
     return df
 

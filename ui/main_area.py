@@ -104,7 +104,7 @@ def render_main(
     df_final = recalculate_proposal(
         df_detailed=state.df_raw,
         detailed_view=detailed_view,
-        master_products=state.master_products,
+        df_master_products=state.df_master_products,
         months=months,
         weights=weights,
         use_previous_month=use_previous_month,
@@ -239,13 +239,13 @@ def render_weights_selector() -> tuple[float, ...]:
 
 def render_brands_filter(state: SessionState, only_options: bool = False) -> list[str] | None:
     """Widget de filtro de marcas (TASK-30)."""
-    # Só faz sentido se houver marcas disponíveis no master_products
-    if state.master_products is None or state.master_products.empty or Columns.MARCA not in state.master_products.columns:
+    # Só faz sentido se houver marcas disponíveis no df_master_products
+    if state.df_master_products is None or state.df_master_products.empty or Columns.MARCA not in state.df_master_products.columns:
         return None
 
     # Extrair marcas únicas disponíveis (ignorando strings vazias e NaN)
     available_brands = (
-        state.master_products[state.master_products[Columns.MARCA].notna() & (state.master_products[Columns.MARCA] != "")][Columns.MARCA]
+        state.df_master_products[state.df_master_products[Columns.MARCA].notna() & (state.df_master_products[Columns.MARCA] != "")][Columns.MARCA]
         .unique()
         .tolist()
     )

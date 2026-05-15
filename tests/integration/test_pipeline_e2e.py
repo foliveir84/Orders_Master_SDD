@@ -44,9 +44,8 @@ def test_pipeline_full_flow(mock_infoprex_content, mock_brands_content) -> None:
     brands_file = io.BytesIO(mock_brands_content)
     brands_file.name = "marcas.csv"
 
-    # Patch streamlit.secrets para retornar None
-    with patch("streamlit.secrets") as mock_secrets:
-        mock_secrets.get.return_value = None
+    # Patch secrets para retornar None
+    with patch("orders_master.secrets_loader.get_secret", return_value=None):
         process_orders_session(
             files=[file1],
             codes_file=None,
@@ -61,7 +60,7 @@ def test_pipeline_full_flow(mock_infoprex_content, mock_brands_content) -> None:
     assert not state.df_raw.empty, "df_raw should not be empty"
     assert len(state.file_inventory) == 1
     assert state.file_inventory[0].status == "ok"
-    assert "MARCA_TESTE" in state.master_products[Columns.MARCA].values
+    assert "MARCA_TESTE" in state.df_master_products[Columns.MARCA].values
 
     # 2. Verificar Agregação Inicial
     assert not state.df_aggregated.empty, f"df_aggregated is empty. Raw: {state.df_raw}"
@@ -77,7 +76,7 @@ def test_pipeline_full_flow(mock_infoprex_content, mock_brands_content) -> None:
     df_final = recalculate_proposal(
         df_detailed=state.df_raw,
         detailed_view=False,
-        master_products=state.master_products,
+        df_master_products=state.df_master_products,
         months=4.0,
         weights=weights,
         scope_context=state.scope_context,
@@ -97,9 +96,9 @@ def test_pipeline_with_integration_mocks(mock_infoprex_content) -> None:
     df_shortages = pd.DataFrame(
         {
             "Número de registo": ["2234567"],
+            "Data de início de rutura": [pd.Timestamp("2024-05-01")],
+            "Data prevista para reposição": [pd.Timestamp("2024-06-01")],
             Columns.TIME_DELTA: [30],
-            "DIR": ["2024-05-01"],
-            "DPR": ["2024-06-01"],
             "Data da Consulta": ["2024-05-15"],
         }
     )
@@ -108,16 +107,16 @@ def test_pipeline_with_integration_mocks(mock_infoprex_content) -> None:
         {"CNP": ["2234567"], "FARMACIA": ["Farmacia_A"], "DATA": [pd.Timestamp("2024-05-10")]}
     )
 
-    with patch("streamlit.secrets") as mock_secrets:
+    with patch("orders_master.app_services.session_service.get_secret") as mock_get_secret:
 
         def mock_get(key, default=None):
-            if key == "SHORTAGES_URL":
+            if key == "SHORTAGES_SHEET_URL":
                 return "http://fake_shortages"
-            if key == "DONOTBUY_URL":
+            if key == "DONOTBUY_SHEET_URL":
                 return "http://fake_dnb"
             return default
 
-        mock_secrets.get.side_effect = mock_get
+        mock_get_secret.side_effect = mock_get
 
         with patch(
             "orders_master.app_services.session_service.fetch_shortages_db",

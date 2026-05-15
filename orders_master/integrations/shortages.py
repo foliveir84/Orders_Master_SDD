@@ -1,29 +1,17 @@
 import logging
 from datetime import datetime
 
+import numpy as np
 import pandas as pd
 
 from orders_master.constants import Columns
+from orders_master.integrations.cache_decorator import cache_decorator
 from orders_master.schemas import ShortageRecordSchema
 
 logger = logging.getLogger(__name__)
 
-try:
-    import streamlit as st
 
-    cache_decorator = st.cache_data(ttl=3600, show_spinner="A carregar BD de Rupturas...")
-except ImportError:
-
-    from collections.abc import Callable
-    from typing import Any, TypeVar
-
-    F = TypeVar("F", bound=Callable[..., Any])
-
-    def cache_decorator(func: F) -> F:
-        return func
-
-
-@cache_decorator
+@cache_decorator(ttl=3600, show_spinner="A carregar BD de Rupturas...")
 def fetch_shortages_db(url: str, codigos_visible: set[int] | None = None) -> pd.DataFrame:
     """
     Lê a Google Sheet de Esgotados, valida o schema e recalcula o TimeDelta.
@@ -41,7 +29,6 @@ def fetch_shortages_db(url: str, codigos_visible: set[int] | None = None) -> pd.
     try:
         df = pd.read_excel(url, dtype={"Número de registo": str})
     except Exception as e:
-        st.sidebar.warning("⚠️ Ligação ao Google Sheets falhou.")
         logger.warning(f"Não foi possível carregar a BD de Rupturas a partir de {url}: {e}")
         return empty_df
 
@@ -57,9 +44,12 @@ def fetch_shortages_db(url: str, codigos_visible: set[int] | None = None) -> pd.
     )
     df["Data de início de rutura"] = pd.to_datetime(df["Data de início de rutura"], errors="coerce")
 
-    today = datetime.now().date()
-    df[Columns.TIME_DELTA] = (df["Data prevista para reposição"].dt.date - today).apply(
-        lambda x: x.days if pd.notnull(x) else pd.NA
+    today = pd.Timestamp(datetime.now().date())
+    delta = (df["Data prevista para reposição"] - today)
+    df[Columns.TIME_DELTA] = np.where(
+        delta.notna(),
+        delta.dt.days,
+        pd.NA,
     )
 
     if codigos_visible is not None:
@@ -79,6 +69,11 @@ def merge_shortages(df_sell_out: pd.DataFrame, df_shortages: pd.DataFrame) -> pd
 
     df_out = df_sell_out.copy()
     df_out["CÓDIGO_STR"] = df_out["CÓDIGO"].astype(str)
+
+    # Remover colunas de integração pré-inicializadas para evitar _x/_y após merge
+    pre_init_cols = [c for c in [Columns.DIR, Columns.DPR, Columns.DATA_OBS, Columns.TIME_DELTA] if c in df_out.columns]
+    if pre_init_cols:
+        df_out = df_out.drop(columns=pre_init_cols)
 
     # left join
     df_out = df_out.merge(
@@ -100,7 +95,7 @@ def merge_shortages(df_sell_out: pd.DataFrame, df_shortages: pd.DataFrame) -> pd
     # Isto remove automaticamente colunas extra como "Motivo", "Medida de Mitigação", etc.
     cols_base_sellout = list(df_sell_out.columns)
     cols_integracao = [Columns.DIR, Columns.DPR, Columns.TIME_DELTA]
-    
+
     final_cols = [c for c in cols_base_sellout if c in df_out.columns]
     for c in cols_integracao:
         if c in df_out.columns and c not in final_cols:

@@ -12,7 +12,7 @@ import pandas as pd
 import pytest
 
 from orders_master.aggregation import aggregator
-from orders_master.aggregation.aggregator import aggregate, build_master_products
+from orders_master.aggregation.aggregator import aggregate, build_df_master_products
 from orders_master.constants import Columns, GroupLabels
 
 # ---------------------------------------------------------------------------
@@ -95,12 +95,12 @@ def df_two_stores() -> pd.DataFrame:
 
 
 def test_grouped_one_row_per_code(df_two_stores: pd.DataFrame, master: pd.DataFrame) -> None:
-    result = aggregate(df_two_stores, detailed=False, master_products=master)
+    result = aggregate(df_two_stores, detailed=False, df_master_products=master)
     assert result[Columns.CODIGO].nunique() == len(result)
 
 
 def test_grouped_sales_summed(df_two_stores: pd.DataFrame, master: pd.DataFrame) -> None:
-    result = aggregate(df_two_stores, detailed=False, master_products=master)
+    result = aggregate(df_two_stores, detailed=False, df_master_products=master)
     row_a = result[result[Columns.CODIGO] == CODE_A].iloc[0]
     assert row_a[Columns.STOCK] == 8
     assert row_a[Columns.T_UNI] == 18
@@ -124,14 +124,14 @@ def test_grouped_pvp_medio_rounded(master: pd.DataFrame) -> None:
             },
         ]
     )
-    result = aggregate(df, detailed=False, master_products=master)
+    result = aggregate(df, detailed=False, df_master_products=master)
     pvp_medio = result.loc[result[Columns.CODIGO] == CODE_A, Columns.PVP_MEDIO].iloc[0]
     assert round(pvp_medio, 2) == pvp_medio  # rounded to 2 decimals
     assert pvp_medio == pytest.approx((5.111 + 3.333) / 2, abs=0.01)
 
 
 def test_grouped_pvp_renamed(df_two_stores: pd.DataFrame, master: pd.DataFrame) -> None:
-    result = aggregate(df_two_stores, detailed=False, master_products=master)
+    result = aggregate(df_two_stores, detailed=False, df_master_products=master)
     assert Columns.PVP_MEDIO in result.columns
     assert Columns.P_CUSTO_MEDIO in result.columns
     assert Columns.PVP not in result.columns
@@ -143,7 +143,7 @@ def test_grouped_pvp_renamed(df_two_stores: pd.DataFrame, master: pd.DataFrame) 
 
 
 def test_detailed_has_grupo_row(df_two_stores: pd.DataFrame, master: pd.DataFrame) -> None:
-    result = aggregate(df_two_stores, detailed=True, master_products=master)
+    result = aggregate(df_two_stores, detailed=True, df_master_products=master)
     grupo_rows = result[result[Columns.LOCALIZACAO] == GroupLabels.GROUP_ROW]
     # One Grupo row per unique CÓDIGO
     unique_codes = df_two_stores[Columns.CODIGO].nunique()
@@ -153,14 +153,14 @@ def test_detailed_has_grupo_row(df_two_stores: pd.DataFrame, master: pd.DataFram
 def test_detailed_n_lines_per_code_plus_grupo(
     df_two_stores: pd.DataFrame, master: pd.DataFrame
 ) -> None:
-    result = aggregate(df_two_stores, detailed=True, master_products=master)
+    result = aggregate(df_two_stores, detailed=True, df_master_products=master)
     # CODE_A: 2 stores + 1 Grupo = 3 rows
     rows_a = result[result[Columns.CODIGO] == CODE_A]
     assert len(rows_a) == 3
 
 
 def test_detailed_grupo_row_last(df_two_stores: pd.DataFrame, master: pd.DataFrame) -> None:
-    result = aggregate(df_two_stores, detailed=True, master_products=master)
+    result = aggregate(df_two_stores, detailed=True, df_master_products=master)
     for codigo in df_two_stores[Columns.CODIGO].unique():
         code_rows = result[result[Columns.CODIGO] == codigo]
         # Last row should be Grupo
@@ -168,7 +168,7 @@ def test_detailed_grupo_row_last(df_two_stores: pd.DataFrame, master: pd.DataFra
 
 
 def test_detailed_sort_key_values(df_two_stores: pd.DataFrame, master: pd.DataFrame) -> None:
-    result = aggregate(df_two_stores, detailed=True, master_products=master)
+    result = aggregate(df_two_stores, detailed=True, df_master_products=master)
     grupo_mask = result[Columns.LOCALIZACAO] == GroupLabels.GROUP_ROW
     assert (result.loc[grupo_mask, Columns.SORT_KEY] == 1).all()
     assert (result.loc[~grupo_mask, Columns.SORT_KEY] == 0).all()
@@ -187,7 +187,7 @@ def test_zombie_rows_removed(master: pd.DataFrame) -> None:
             {Columns.CODIGO: CODE_C, Columns.STOCK: 5, Columns.T_UNI: 10},
         ]
     )
-    result = aggregate(df, detailed=False, master_products=master)
+    result = aggregate(df, detailed=False, df_master_products=master)
     assert CODE_A not in result[Columns.CODIGO].values
     assert CODE_C in result[Columns.CODIGO].values
 
@@ -201,7 +201,7 @@ def test_zombie_aggregated_removed(master: pd.DataFrame) -> None:
             {Columns.CODIGO: CODE_C, Columns.STOCK: 5, Columns.T_UNI: 10},
         ]
     )
-    result = aggregate(df, detailed=False, master_products=master)
+    result = aggregate(df, detailed=False, df_master_products=master)
     assert CODE_A not in result[Columns.CODIGO].values
     assert CODE_C in result[Columns.CODIGO].values
 
@@ -214,7 +214,7 @@ def test_price_anomaly_excluded_from_average(master: pd.DataFrame) -> None:
             {Columns.CODIGO: CODE_A, Columns.PVP: 0.00, Columns.PRICE_ANOMALY: True},  # anomaly
         ]
     )
-    result = aggregate(df, detailed=False, master_products=master)
+    result = aggregate(df, detailed=False, df_master_products=master)
     pvp_medio = result.loc[result[Columns.CODIGO] == CODE_A, Columns.PVP_MEDIO].iloc[0]
     # Only the non-anomaly row should count: PVP_Médio should be 10.00, not 5.00
     assert pvp_medio == pytest.approx(10.00, abs=0.01)
@@ -225,32 +225,32 @@ def test_price_anomaly_excluded_from_average(master: pd.DataFrame) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_master_products_injects_designacao_and_marca(
+def test_df_master_products_injects_designacao_and_marca(
     df_two_stores: pd.DataFrame, master: pd.DataFrame
 ) -> None:
-    result = aggregate(df_two_stores, detailed=False, master_products=master)
+    result = aggregate(df_two_stores, detailed=False, df_master_products=master)
     row = result[result[Columns.CODIGO] == CODE_A].iloc[0]
     assert row[Columns.DESIGNACAO] == "Produto Alfa"
     assert row[Columns.MARCA] == "Marca A"
 
 
-def test_build_master_products_without_brands() -> None:
+def test_build_df_master_products_without_brands() -> None:
     df = make_df(
         [
             {Columns.CODIGO: CODE_A, Columns.DESIGNACAO: "Produto Alfa"},
         ]
     )
-    master = build_master_products(df)
+    master = build_df_master_products(df)
     assert Columns.CODIGO in master.columns
     assert Columns.DESIGNACAO in master.columns
     assert Columns.MARCA in master.columns
     assert master.iloc[0][Columns.MARCA] == ""
 
 
-def test_build_master_products_with_brands() -> None:
+def test_build_df_master_products_with_brands() -> None:
     df = make_df([{Columns.CODIGO: CODE_A, Columns.DESIGNACAO: "Produto Alfa"}])
     df_brands = pd.DataFrame({"COD": [CODE_A], "MARCA": ["SuperBrands"]})
-    master = build_master_products(df, df_brands=df_brands)
+    master = build_df_master_products(df, df_brands=df_brands)
     row = master[master[Columns.CODIGO] == CODE_A].iloc[0]
     assert row[Columns.MARCA] == "SuperBrands"
 
@@ -269,7 +269,7 @@ def test_local_codes_discarded(master: pd.DataFrame) -> None:
             {Columns.CODIGO: CODE_C, Columns.STOCK: 5, Columns.T_UNI: 10},
         ]
     )
-    result = aggregate(df, detailed=False, master_products=master)
+    result = aggregate(df, detailed=False, df_master_products=master)
     assert local_code not in result[Columns.CODIGO].values
     assert CODE_C in result[Columns.CODIGO].values
 
@@ -287,8 +287,8 @@ def test_deterministic_sort_grouped(master: pd.DataFrame) -> None:
             {Columns.CODIGO: CODE_A, Columns.DESIGNACAO: "Aaa Produto"},
         ]
     )
-    result = aggregate(df, detailed=False, master_products=master)
-    # After merge with master, designations come from master_products
+    result = aggregate(df, detailed=False, df_master_products=master)
+    # After merge with master, designations come from df_master_products
     designacoes = result[Columns.DESIGNACAO].tolist()
     assert designacoes == sorted(designacoes)
 
