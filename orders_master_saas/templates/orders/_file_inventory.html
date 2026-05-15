@@ -1,0 +1,43 @@
+{% if file_inventory %}
+<div class="mt-4 bg-white rounded-lg shadow overflow-hidden">
+    <details class="group">
+        <summary class="px-4 py-3 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+            <svg class="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            Ficheiros processados ({{ file_inventory|length }})
+        </summary>
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-t">
+                <tr>
+                    <th class="px-4 py-2 text-left font-medium text-gray-500">Ficheiro</th>
+                    <th class="px-4 py-2 text-left font-medium text-gray-500">Farmácia</th>
+                    <th class="px-4 py-2 text-right font-medium text-gray-500">Linhas</th>
+                    <th class="px-4 py-2 text-left font-medium text-gray-500">DUC Max</th>
+                    <th class="px-4 py-2 text-left font-medium text-gray-500">Avisos</th>
+                    <th class="px-4 py-2 text-center font-medium text-gray-500">Estado</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for entry in file_inventory %}
+                <tr class="{% if entry.status == 'error' %}bg-red-50{% endif %}">
+                    <td class="px-4 py-2">{{ entry.filename }}</td>
+                    <td class="px-4 py-2">{{ entry.farmacia|default:"—" }}</td>
+                    <td class="px-4 py-2 text-right">{{ entry.n_linhas|default:"0" }}</td>
+                    <td class="px-4 py-2">{{ entry.duv_max|default:"—" }}</td>
+                    <td class="px-4 py-2 text-xs">{{ entry.avisos|default:"" }}</td>
+                    <td class="px-4 py-2 text-center">
+                        {% if entry.status == 'ok' %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-medium">OK</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-medium"
+                              title="{{ entry.error_message }}">Erro</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+</div>
+{% endif %}

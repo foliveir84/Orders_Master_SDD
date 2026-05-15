@@ -1,0 +1,82 @@
+<form hx-post="{% url 'orders:recalc' %}"
+      hx-target="#table-container"
+      hx-swap="innerHTML"
+      hx-indicator="#recalc-spinner"
+      class="mt-4 bg-white rounded-lg shadow p-4 flex flex-wrap items-end gap-4">
+
+    {% csrf_token %}
+
+    {# Vista toggle #}
+    <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">Vista</label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer">
+            <input type="checkbox"
+                   name="detailed_view"
+                   id="id_detailed_view"
+                   {% if detailed_view %}checked{% endif %}
+                   class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+            <span class="text-sm text-gray-600">Detalhada</span>
+        </label>
+    </div>
+
+    {# Meses slider #}
+    <div class="flex flex-col">
+        <label for="id_meses" class="text-sm font-medium text-gray-700 mb-1">
+            Meses de Previsão
+        </label>
+        <div class="flex items-center gap-2">
+            <input type="range"
+                   name="meses"
+                   id="id_meses_range"
+                   min="1" max="6" step="0.1" value="{{ form.meses.value|default:'1.0' }}"
+                   class="w-28 accent-indigo-600"
+                   oninput="document.getElementById('id_meses').value=this.value; document.getElementById('meses-display').textContent=parseFloat(this.value).toFixed(1)">
+            <input type="number"
+                   name="meses"
+                   id="id_meses"
+                   min="1" max="6" step="0.1" value="{{ form.meses.value|default:'1.0' }}"
+                   class="w-16 text-right text-sm border border-gray-300 rounded px-1 py-0.5"
+                   oninput="document.getElementById('id_meses_range').value=this.value; document.getElementById('meses-display').textContent=parseFloat(this.value).toFixed(1)">
+            <span id="meses-display" class="text-sm text-gray-500 w-8">{{ form.meses.value|default:'1.0' }}</span>
+        </div>
+    </div>
+
+    {# Preset dropdown #}
+    <div class="flex flex-col">
+        <label for="id_preset" class="text-sm font-medium text-gray-700 mb-1">Preset</label>
+        <select name="preset" id="id_preset" class="rounded border-gray-300 text-sm">
+            <option value="PADRAO" {% if form.preset.value == 'PADRAO' %}selected{% endif %}>Padrão</option>
+            <option value="CONSERVADOR" {% if form.preset.value == 'CONSERVADOR' %}selected{% endif %}>Conservador</option>
+            <option value="AGRESSIVO" {% if form.preset.value == 'AGRESSIVO' %}selected{% endif %}>Agressivo</option>
+        </select>
+    </div>
+
+    {# Use previous month toggle #}
+    <div class="flex items-center gap-2">
+        <label class="inline-flex items-center gap-1.5 cursor-pointer">
+            <input type="checkbox"
+                   name="use_previous_month"
+                   id="id_use_previous_month"
+                   {% if form.use_previous_month.value %}checked{% endif %}
+                   class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+            <span class="text-sm text-gray-600">Ignorar Mês Anterior</span>
+        </label>
+    </div>
+
+    {# Hidden marcas field #}
+    <input type="hidden" name="marcas" id="id_marcas" value="">
+
+    {# Submit #}
+    <div class="flex items-center gap-2">
+        <button type="submit"
+                class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors">
+            Recalcular
+        </button>
+        <span id="recalc-spinner" class="htmx-indicator">
+            <svg class="animate-spin h-4 w-4 text-indigo-600" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+            </svg>
+        </span>
+    </div>
+</form>

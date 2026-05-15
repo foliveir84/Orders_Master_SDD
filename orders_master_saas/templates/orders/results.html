@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load table_tags %}
+{% block title %}Resultados — Orders Master{% endblock %}
+{% block content %}
+<div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    {# Banner for BD Rupturas #}
+    {% include "orders/_banner.html" %}
+
+    {# Scope metrics bar #}
+    {% include "orders/_scope_bar.html" %}
+
+    {# File inventory table #}
+    {% include "orders/_file_inventory.html" %}
+
+    {# Controls (HTMX recalc form) #}
+    {% include "orders/_controls.html" %}
+
+    {# Results table #}
+    <div id="table-container" class="mt-4 overflow-x-auto bg-white rounded-lg shadow">
+        {% include "orders/_table_rows.html" %}
+    </div>
+
+    {# Download button #}
+    <div class="mt-4 flex justify-end">
+        <a href="{% url 'orders:download' %}"
+           class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors">
+            Download Excel
+        </a>
+    </div>
+
+</div>
+{% endblock %}

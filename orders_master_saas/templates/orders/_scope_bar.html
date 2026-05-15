@@ -1,0 +1,24 @@
+{% load table_tags %}
+<div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600 bg-white rounded-lg shadow px-4 py-3">
+    <span>
+        <strong>{{ scope.n_produtos|default:"0" }}</strong> produtos
+    </span>
+    <span>
+        <strong>{{ scope.n_farmacias|default:"0" }}</strong> farmácias
+    </span>
+    {% if scope.descricao_filtro %}
+    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-medium">
+        {{ scope.descricao_filtro }}
+    </span>
+    {% endif %}
+    {% if scope.primeiro_mes and scope.ultimo_mes %}
+    <span>
+        Janela: <strong>{{ scope.primeiro_mes }}</strong> — <strong>{{ scope.ultimo_mes }}</strong>
+    </span>
+    {% endif %}
+    {% if scope.modo %}
+    <span>
+        Modo: <strong>{{ scope.modo }}</strong>
+    </span>
+    {% endif %}
+</div>

@@ -1,0 +1,25 @@
+{% load table_tags %}
+<table class="table-orders">
+    <thead>
+        <tr>
+            {% for col in columns %}
+            <th>{{ col }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr class="{{ row.row_classes }}">
+            {% for col in columns %}
+            {% with cell_class=row.cell_classes|get:col %}
+            <td class="{{ cell_class }}">{{ row.cells|get:col }}</td>
+            {% endwith %}
+            {% endfor %}
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="99" class="text-center text-gray-400 py-8">Sem dados</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
