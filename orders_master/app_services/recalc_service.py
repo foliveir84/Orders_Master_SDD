@@ -80,8 +80,6 @@ def recalculate_proposal(  # noqa: PLR0913
 
     # 5. Actualizar ScopeContext (TASK-33)
     if scope_context is not None:
-        from orders_master.constants import GroupLabels
-
         # Contagem de produtos (excluir linhas 'Grupo' se vista detalhada)
         if detailed_view and Columns.LOCALIZACAO in df_agg.columns:
             scope_context.n_produtos = len(

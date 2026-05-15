@@ -37,24 +37,24 @@ def build_df_master_products(
         DataFrame com colunas CÓDIGO, DESIGNAÇÃO e MARCA.
     """
     # Designação mais frequente por código
-    master = (
+    df_master = (
         df.groupby(Columns.CODIGO)[Columns.DESIGNACAO]
         .agg(lambda s: s.mode().iloc[0] if not s.mode().empty else s.iloc[0])
         .reset_index()
     )
-    master[Columns.DESIGNACAO] = clean_designation_vectorized(master[Columns.DESIGNACAO])
-    master[Columns.MARCA] = ""
+    df_master[Columns.DESIGNACAO] = clean_designation_vectorized(df_master[Columns.DESIGNACAO])
+    df_master[Columns.MARCA] = ""
 
     if df_brands is not None and not df_brands.empty:
         brands_clean = df_brands.rename(columns={"COD": Columns.CODIGO})[
             [Columns.CODIGO, Columns.MARCA]
         ].drop_duplicates(subset=[Columns.CODIGO])
-        master = master.merge(brands_clean, on=Columns.CODIGO, how="left", suffixes=("_old", ""))
-        if "MARCA_old" in master.columns:
-            master = master.drop(columns=["MARCA_old"])
-        master[Columns.MARCA] = master[Columns.MARCA].fillna("")
+        df_master = df_master.merge(brands_clean, on=Columns.CODIGO, how="left", suffixes=("_old", ""))
+        if "MARCA_old" in df_master.columns:
+            df_master = df_master.drop(columns=["MARCA_old"])
+        df_master[Columns.MARCA] = df_master[Columns.MARCA].fillna("")
 
-    return master[[Columns.CODIGO, Columns.DESIGNACAO, Columns.MARCA]]
+    return df_master[[Columns.CODIGO, Columns.DESIGNACAO, Columns.MARCA]]
 
 
 def reorder_columns(df: pd.DataFrame, detailed: bool) -> pd.DataFrame:

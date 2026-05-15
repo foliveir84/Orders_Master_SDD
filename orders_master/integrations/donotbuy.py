@@ -38,7 +38,7 @@ def fetch_donotbuy_list(url: str, aliases: dict[str, str], codigos_visible: set[
     # Parse dates
     df["DATA"] = pd.to_datetime(df["DATA"], format="%d-%m-%Y", errors="coerce")
 
-    # Map locations — vectorized via list comprehension
+    # Map locations — list comprehension (faster than .apply, map_location is not vectorizable)
     df["FARMACIA"] = [
         map_location(str(x), aliases) if pd.notna(x) else ""
         for x in df["FARMACIA"]

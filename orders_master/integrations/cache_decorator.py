@@ -37,7 +37,11 @@ def cache_decorator(
             kwargs["show_spinner"] = show_spinner
         return st.cache_data(**kwargs)  # type: ignore[no-any-return]
     except ImportError:
-        pass
+        import logging
+        logging.getLogger(__name__).debug(
+            "Streamlit not available; cache_decorator is a no-op. "
+            "Consider configuring Django's cache framework."
+        )
 
     # Fallback: identity decorator (no caching)
     def _identity(func: F) -> F:

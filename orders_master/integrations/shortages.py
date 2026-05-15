@@ -50,7 +50,7 @@ def fetch_shortages_db(url: str, codigos_visible: set[int] | None = None) -> pd.
         delta.notna(),
         delta.dt.days,
         pd.NA,
-    )
+    ).astype("Int64")
 
     if codigos_visible is not None:
         df = df[

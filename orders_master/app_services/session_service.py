@@ -94,15 +94,15 @@ def process_orders_session(  # noqa: PLR0913
 
     # 3. Build master products + brands
     df_brands = parse_brands_csv(brands_files) if brands_files else None
-    master = build_df_master_products(df_full, df_brands)
+    df_master = build_df_master_products(df_full, df_brands)
 
     # 4. Agregações (detalhada e agrupada)
     # Nota: nestes passos não calculamos propostas ainda, só estrutura
-    state.df_aggregated = aggregate(df_full, detailed=False, df_master_products=master)
-    state.df_detailed = aggregate(df_full, detailed=True, df_master_products=master)
+    state.df_aggregated = aggregate(df_full, detailed=False, df_master_products=df_master)
+    state.df_detailed = aggregate(df_full, detailed=True, df_master_products=df_master)
 
     # 5. Guardar master products para recálculos futuros
-    state.df_master_products = master
+    state.df_master_products = df_master
 
     # 6. Popular ScopeContext inicial (TASK-33)
     state.scope_context.n_produtos = len(state.df_aggregated)
