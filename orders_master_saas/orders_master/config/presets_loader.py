@@ -53,3 +53,19 @@ def load_presets_config(path: str | Path) -> dict[str, list[float]]:
     except (yaml.YAMLError, ValidationError, ValueError) as e:
         logger.error(f"Erro ao carregar presets de {path}: {e}")
         return default_presets
+
+
+def load_presets_from_db() -> dict[str, list[float]]:
+    """
+    Load peso presets from the Django database.
+
+    Returns:
+        Dict mapping preset name -> list of weights.
+        Returns empty dict if Django models are not available.
+    """
+    try:
+        from orders.models import ConfigPesoPreset
+
+        return {p.nome: p.pesos for p in ConfigPesoPreset.objects.all()}
+    except Exception:
+        return {}

@@ -5,13 +5,23 @@ import numpy as np
 import pandas as pd
 
 from orders_master.constants import Columns
-from orders_master.integrations.cache_decorator import cache_decorator
+try:
+    from orders_master.integrations.django_cache import django_cache_decorator
+    # django_cache_decorator(timeout=..., key_prefix=...) returns a decorator directly
+    cache_decorator = django_cache_decorator(timeout=3600, key_prefix="shortages")
+except ImportError:
+    # Fallback: use generic cache_decorator (Streamlit or no-op)
+    # Wrap it so @cache_decorator works without parentheses
+    from orders_master.integrations.cache_decorator import cache_decorator as _cache_factory  # noqa: F401
+
+    def cache_decorator(func):  # type: ignore[misc]
+        return _cache_factory(ttl=3600)(func)
 from orders_master.schemas import ShortageRecordSchema
 
 logger = logging.getLogger(__name__)
 
 
-@cache_decorator(ttl=3600, show_spinner="A carregar BD de Rupturas...")
+@cache_decorator
 def fetch_shortages_db(url: str, codigos_visible: set[int] | None = None) -> pd.DataFrame:
     """
     Lê a Google Sheet de Esgotados, valida o schema e recalcula o TimeDelta.

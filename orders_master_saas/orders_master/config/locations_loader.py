@@ -55,7 +55,7 @@ def get_file_mtime(path: Path) -> float:
 def load_locations(mtime: float, path: Path = Path("config/localizacoes.json")) -> LocationsConfig:
     """
     Loads and validates localizacoes.json.
-    Uses mtime to invalidate cache in Streamlit.
+    Uses mtime to invalidate cache.
 
     Args:
         mtime (float): File modification time (used as cache key).
@@ -130,3 +130,32 @@ def map_location(name: str, aliases: dict[str, str]) -> str:
 
     # 3. Fallback
     return name.title()
+
+
+def load_locations_from_db(client_id: int | None = None) -> dict[str, str]:
+    """
+    Load location aliases from the Django database.
+
+    Args:
+        client_id: Optional client ID for tenant-scoped configs.
+                   Global configs (cliente=None) are always included.
+                   Client-specific configs override globals when overlapping.
+
+    Returns:
+        Dict mapping search_term -> alias.
+        Returns empty dict if Django models are not available.
+    """
+    try:
+        from orders.models import ConfigLocalizacao
+
+        aliases: dict[str, str] = {}
+        # Global (client-agnostic) locations first
+        for loc in ConfigLocalizacao.objects.filter(cliente__isnull=True):
+            aliases[loc.search_term] = loc.alias
+        # Client-specific locations override globals
+        if client_id:
+            for loc in ConfigLocalizacao.objects.filter(cliente_id=client_id):
+                aliases[loc.search_term] = loc.alias
+        return aliases
+    except Exception:
+        return {}

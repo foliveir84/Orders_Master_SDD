@@ -4,13 +4,23 @@ import pandas as pd
 
 from orders_master.config.locations_loader import map_location
 from orders_master.constants import Columns
-from orders_master.integrations.cache_decorator import cache_decorator
+try:
+    from orders_master.integrations.django_cache import django_cache_decorator
+    # django_cache_decorator(timeout=..., key_prefix=...) returns a decorator directly
+    cache_decorator = django_cache_decorator(timeout=3600, key_prefix="donotbuy")
+except ImportError:
+    # Fallback: use generic cache_decorator (Streamlit or no-op)
+    # Wrap it so @cache_decorator works without parentheses
+    from orders_master.integrations.cache_decorator import cache_decorator as _cache_factory  # noqa: F401
+
+    def cache_decorator(func):  # type: ignore[misc]
+        return _cache_factory(ttl=3600)(func)
 from orders_master.schemas import DoNotBuyRecordSchema
 
 logger = logging.getLogger(__name__)
 
 
-@cache_decorator(ttl=3600, show_spinner="A carregar lista Não Comprar...")
+@cache_decorator
 def fetch_donotbuy_list(url: str, aliases: dict[str, str], codigos_visible: set[int] | None = None) -> pd.DataFrame:
     """
     Lê a Google Sheet de produtos Não Comprar, formata datas e alinha nomes de farmácia.

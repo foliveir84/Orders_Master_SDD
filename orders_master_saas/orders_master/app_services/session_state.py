@@ -51,34 +51,3 @@ class SessionState:
     file_inventory: list[FileInventoryEntry] = field(default_factory=list)
     scope_context: ScopeContext = field(default_factory=ScopeContext)
     shortages_data_consulta: str | None = None
-
-
-def get_state() -> SessionState:
-    """
-    Obtém o estado da sessão actual.
-    Faz lazy-init em st.session_state se o Streamlit estiver disponível.
-    Caso contrário, devolve uma nova instância de SessionState (útil para testes).
-    """
-    try:
-        import streamlit as st  # noqa: PLC0415
-
-        if "orders_master_state" not in st.session_state:
-            st.session_state["orders_master_state"] = SessionState()
-
-        # Garantir que o retorno é do tipo SessionState (ajuda o mypy)
-        state: SessionState = st.session_state["orders_master_state"]
-        return state
-    except ImportError:
-        # Fallback para ambiente sem Streamlit (testes unitários)
-        return SessionState()
-
-
-def reset_state() -> None:
-    """Limpa o estado da sessão actual no Streamlit."""
-    try:
-        import streamlit as st  # noqa: PLC0415
-
-        if "orders_master_state" in st.session_state:
-            del st.session_state["orders_master_state"]
-    except ImportError:
-        pass

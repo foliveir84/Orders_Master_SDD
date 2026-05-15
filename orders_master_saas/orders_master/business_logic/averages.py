@@ -3,8 +3,6 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
-from orders_master.integrations.cache_decorator import cache_decorator
-
 
 def select_window(df: pd.DataFrame, use_previous_month: bool, weights_len: int = 4) -> list[str]:
     """
@@ -48,11 +46,23 @@ def weighted_average(
     return df[cols].fillna(0).dot(w_series)
 
 
-@cache_decorator(ttl=3600)
 def load_presets(path: str | Path) -> dict[str, tuple[float, ...]]:
     """
-    Loader de config/presets.yaml com cache para evitar I/O excessivo.
+    Load peso presets — tries Django DB first, falls back to YAML file.
     """
+    # 1. Try Django model
+    try:
+        from orders.models import ConfigPesoPreset
+
+        db_presets = {}
+        for p in ConfigPesoPreset.objects.all():
+            db_presets[p.nome] = tuple(p.pesos)
+        if db_presets:
+            return db_presets
+    except Exception:
+        pass
+
+    # 2. Fallback: load from YAML
     path = Path(path)
     if not path.exists():
         # Fallback se o ficheiro desaparecer

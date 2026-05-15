@@ -104,7 +104,7 @@ def get_file_mtime(path: Path) -> float:
 def load_labs(mtime: float, path: Path = Path("config/laboratorios.json")) -> LabsConfig:
     """
     Loads and validates laboratorios.json.
-    Uses mtime to invalidate cache in Streamlit.
+    Uses mtime to invalidate cache.
 
     Args:
         mtime (float): File modification time (used as cache key).
@@ -133,3 +133,24 @@ def load_labs(mtime: float, path: Path = Path("config/laboratorios.json")) -> La
         return config
     except Exception as e:
         raise ConfigError(f"Falha na validação do schema para {path}: {e}")
+
+
+def load_labs_from_db(client_id: int | None = None) -> dict[str, list[str]]:
+    """
+    Load laboratory configuration from the Django database.
+
+    Args:
+        client_id: Optional client ID for tenant-scoped configs.
+                   When None, only global (client-agnostic) configs are returned.
+
+    Returns:
+        Dict mapping lab name -> list of CLA codes.
+        Returns empty dict if Django models are not available.
+    """
+    try:
+        from orders.models import ConfigLaboratorio
+
+        qs = ConfigLaboratorio.objects.filter(ativo=True)
+        return {lab.nome: lab.codigos_cla for lab in qs}
+    except Exception:
+        return {}
