@@ -118,6 +118,9 @@ def _get_weights(preset: str) -> tuple[float, ...]:
 @login_required
 def upload_view(request):
     """Upload Infoprex files and run the heavy processing pipeline."""
+    if getattr(request, "subscription_expired", False):
+        return render(request, "orders/subscription_expired.html", status=403)
+
     ps = _get_session(request)
 
     if request.method == "POST":
@@ -164,6 +167,14 @@ def upload_view(request):
                             "Nenhuma farmácia reconhecida nos ficheiros. Verifique os nomes.",
                         )
 
+            # BD Rupturas feature flag
+            bd_rupturas_active = False
+            if hasattr(request, "tenant") and request.tenant:
+                try:
+                    bd_rupturas_active = request.tenant.subscricao.bd_rupturas_ativa and request.tenant.subscricao.ativa
+                except Exception:
+                    bd_rupturas_active = False
+
             # Run the heavy pipeline
             state = SessionState()
             try:
@@ -175,6 +186,7 @@ def upload_view(request):
                     labs_config=labs_config,
                     locations_aliases=locations_aliases,
                     state=state,
+                    bd_rupturas_active=bd_rupturas_active,
                 )
             except Exception as exc:
                 logger.exception("Erro no processamento")
@@ -209,6 +221,7 @@ def upload_view(request):
                     "modo": state.scope_context.modo,
                 })
                 ps.store_value("shortages_data_consulta", state.shortages_data_consulta)
+                ps.store_value("bd_rupturas_active", bd_rupturas_active)
                 # Default initial view
                 ps.store_value("detailed_view", False)
                 ps.store_value("meses", 1.0)
@@ -229,6 +242,9 @@ def upload_view(request):
 @login_required
 def results_view(request):
     """Display processed results with the conditional table."""
+    if getattr(request, "subscription_expired", False):
+        return render(request, "orders/subscription_expired.html", status=403)
+
     ps = _get_session(request)
 
     # Retrieve the current DataFrame
@@ -244,6 +260,7 @@ def results_view(request):
     scope = ps.get_value("scope_context") or {}
     file_inventory = ps.get_value("file_inventory") or []
     shortages_data = ps.get_value("shortages_data_consulta")
+    bd_rupturas_active = ps.get_value("bd_rupturas_active") or False
     meses = ps.get_value("meses") or 1.0
     preset = ps.get_value("preset") or "PADRAO"
     use_previous_month = ps.get_value("use_previous_month") or False
@@ -261,6 +278,7 @@ def results_view(request):
         "scope": scope,
         "file_inventory": file_inventory,
         "shortages_data": shortages_data,
+        "bd_rupturas_active": bd_rupturas_active,
         "form": form,
         "detailed_view": detailed_view,
     }

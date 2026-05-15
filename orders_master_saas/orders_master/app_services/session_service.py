@@ -28,6 +28,7 @@ def process_orders_session(  # noqa: PLR0913
     locations_aliases: dict[str, str],
     state: SessionState,
     progress_callback: Callable[[float, str], None] | None = None,
+    bd_rupturas_active: bool = False,
 ) -> None:
     """
     Orquestra o pipeline pesado: parse -> concat -> aggregate -> popular SessionState.
@@ -64,12 +65,12 @@ def process_orders_session(  # noqa: PLR0913
         if col not in df_full.columns:
             df_full[col] = pd.NA
 
-    # 2.5 Integrar BD de Rupturas (TASK-32)
+    # 2.5 Integrar BD de Rupturas (TASK-32) — gated by bd_rupturas_active feature flag
     try:
         from orders_master.integrations.donotbuy import fetch_donotbuy_list, merge_donotbuy
 
         url_shortages = get_secret(SHORTAGES_SHEET_URL)
-        if url_shortages:
+        if bd_rupturas_active and url_shortages:
             df_shortages = fetch_shortages_db(url_shortages)
             if not df_shortages.empty:
                 # O merge injecta TimeDelta (necessário para cálculos) e DIR/DPR (para visualização)
