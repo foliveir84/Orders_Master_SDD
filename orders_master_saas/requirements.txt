@@ -1,0 +1,13 @@
+django>=5.1
+gunicorn>=21.2
+psycopg2-binary>=2.9
+redis>=5.0
+django-redis>=5.4
+celery>=5.3
+pandas>=2.1
+openpyxl>=3.1
+pydantic>=2.5
+python-dotenv>=1.0
+pyyaml>=6.0
+python-dateutil>=2.8
+dj-database-url>=2.1

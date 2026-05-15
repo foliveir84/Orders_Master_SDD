@@ -1,0 +1,7 @@
+-r requirements.txt
+pytest>=7.4
+pytest-django>=4.7
+factory-boy>=3.3
+django-debug-toolbar>=4.2
+django-browser-reload>=1.11
+ruff>=0.1

@@ -3,7 +3,7 @@
 > **PRD:** [prdv2.md](./prdv2.md)
 > **Versão:** 1.0
 > **Data:** 2026-05-04
-> **Estado:** Plano completo — todas as 50 tarefas detalhadas
+> **Estado:** Plano completo — 50 tarefas Streamlit + 25 tarefas Migração Django
 
 ---
 
@@ -45,6 +45,14 @@ Cada tarefa segue o template:
 | 5 | [x] UI Streamlit | TASK-25 a TASK-34 | Sidebar, área principal, Scope Bar, File Inventory, toggles, filtros, progress bar. |
 | 6 | Formatação e Exportação | TASK-40 a TASK-43 | Styler web, openpyxl Excel, SSOT de rules, nome dinâmico, teste de paridade. |
 | 7 | [x] Testes e Validação | TASK-35 a TASK-39, TASK-44 a TASK-50 | Testes unitários, integração, performance, CI/CD, docs, linting. |
+| 8 | Pré-Migração | T2-01, T2-02, T2-03, T2-07–T2-10, T2-12, T2-13, T2-16 | Correcções TarefasV2 que bloqueiam a migração (remover Streamlit do domínio). |
+| 9 | Django Setup | MIG-0.1 a MIG-0.3 | Scaffold Django, copiar domínio, adicionar TailwindCSS + HTMX. |
+| 10 | Adaptação Domínio | MIG-1.1 a MIG-1.8 | Remover dependências Streamlit de orders_master/, substituir por Django cache/settings. |
+| 11 | Models & Config | MIG-2.1 a MIG-2.3 | Criar models Django (Cliente, Farmacia, Subscricao, Config*), comandos de importação. |
+| 12 | Auth & Multi-Tenancy | MIG-3.1 a MIG-3.3 | TenantMiddleware, login/logout, Django Admin customizado. |
+| 13 | Views & Templates | MIG-4.1 a MIG-4.4 | ProcessingSession (Redis), upload/results views, tabela condicional, licença. |
+| 14 | Features & Subscrições | MIG-5.1 a MIG-5.2 | Feature flag BD Rupturas, validade de subscrição. |
+| 15 | Produção & Deploy | MIG-6.1 a MIG-6.3 | Railway deploy, verificação zero Streamlit, smoke test. |
 
 ---
 
@@ -1606,4 +1614,751 @@ graph TD
 
 ---
 
-*tasks.md completo. Todas as 50 tarefas estão detalhadas com objectivo, referências PRD, dependências, inputs, outputs, critérios de aceitação, notas de implementação e estimativas.*
+## FASE 8 — Pré-Migração (Correcções TarefasV2)
+
+> Estas correcções do `TarefasV2.md` são pré-requisito para a migração Django. Sem elas, o `orders_master/` copiado para Django manteria dependências Streamlit.
+
+### T2-01 — Segurança: gitignore para secrets.toml
+**Objectivo:** Garantir que `.streamlit/secrets.toml` nunca é commitado (bloqueia URLs sensíveis).
+**Referência PRD:** → TarefasV2 T2-01
+**Bloqueado por:** —
+**Input:** Repositório com `.streamlit/`.
+**Output esperado:** `.gitignore` actualizado com `.streamlit/secrets.toml`; pre-commit hook bloqueia commit acidental.
+**Critérios de Aceitação:**
+- [ ] `git add .streamlit/secrets.toml` é bloqueado pelo pre-commit hook.
+- [ ] Ficheiro existente em git é removido do tracking (se aplicável).
+**Notas de Implementação:** Pre-commit hook custom em `.pre-commit-config.yaml` com padrão `secrets\.toml`.
+**Estimativa:** XS
+
+---
+
+### T2-02 — Remover `import streamlit` do domínio (integrations/, config/)
+**Objectivo:** Remover todas as referências `import streamlit` de `orders_master/integrations/` e `orders_master/config/` — o pacote Django não pode ter Streamlit no domínio.
+**Referência PRD:** → TarefasV2 T2-02; AGENTS.md "Streamlit leaks in domain code"
+**Bloqueado por:** T2-01
+**Input:** Código actual com `import streamlit` e `@st.cache_data` em `shortages.py`, `donotbuy.py`, `labs_loader.py`, `locations_loader.py`.
+**Output esperado:** Zero `import streamlit` em `orders_master/` (excepto `app_services/` que será adaptado na migração).
+**Critérios de Aceitação:**
+- [ ] `grep -r "import streamlit" orders_master/integrations/ orders_master/config/` → 0 matches.
+- [ ] Todos os testes existentes continuam a passar.
+- [ ] `@st.cache_data` substituído por decorator genérico com fallback.
+**Notas de Implementação:** Criar `cache_decorator` genérico que tenta `st.cache_data` se disponível, senão identity. A migração Django (MIG-1.x) substituirá por `django_cache_decorator`.
+**Estimativa:** M
+
+---
+
+### T2-03 — Corrigir bug do filtro de marcas
+**Objectivo:** Corrigir bug no filtro de marcas que não preserva correctamente a linha Grupo.
+**Referência PRD:** → TarefasV2 T2-03; PRD §5.5.3; ADR-013
+**Bloqueado por:** —
+**Input:** Filtro de marcas actual.
+**Output esperado:** Linha Grupo sempre preservada independentemente do filtro de marcas activo.
+**Critérios de Aceitação:**
+- [ ] Filtrar por 1 marca → linhas dessa marca + linha Grupo visíveis.
+- [ ] Linha Grupo nunca filtrada.
+**Notas de Implementação:** Máscara: `(df['LOCALIZACAO'] == 'Grupo') | (df['MARCA'].isin(marcas_selecionadas))`.
+**Estimativa:** XS
+
+---
+
+### T2-07 — Vectorizar shortages.py (remover `.apply(lambda)`)
+**Objectivo:** Substituir `.apply(lambda)` em `shortages.py` por operações vectorizadas `.str` / `np.where`.
+**Referência PRD:** → TarefasV2 T2-07; AGENTS.md "Vectorized operations only"
+**Bloqueado por:** T2-02
+**Input:** `shortages.py` com `.apply(lambda)`.
+**Output esperado:** Zero `.apply(lambda)` em `shortages.py`; mesma funcionalidade via operações vectorizadas.
+**Critérios de Aceitação:**
+- [ ] `grep -r "\.apply" orders_master/integrations/shortages.py` → 0 matches.
+- [ ] Testes existentes passam.
+- [ ] Benchmark: vectorizado ≥ 5× mais rápido que `.apply` em 10k linhas.
+**Notas de Implementação:** Usar `.str` methods e `np.where` conforme convenção AGENTS.md.
+**Estimativa:** S
+
+---
+
+### T2-08 — Vectorizar donotbuy.py (remover `.apply(lambda)`)
+**Objectivo:** Substituir `.apply(lambda)` em `donotbuy.py` por operações vectorizadas.
+**Referência PRD:** → TarefasV2 T2-08
+**Bloqueado por:** T2-02
+**Input:** `donotbuy.py` com `.apply(lambda)`.
+**Output esperado:** Zero `.apply(lambda)` em `donotbuy.py`.
+**Critérios de Aceitação:**
+- [ ] `grep -r "\.apply" orders_master/integrations/donotbuy.py` → 0 matches.
+- [ ] Testes existentes passam.
+**Notas de Implementação:** Igual abordagem de T2-07.
+**Estimativa:** S
+
+---
+
+### T2-09 — Implementar lazy merge em integrações
+**Objectivo:** Implementar filtro lazy por códigos visíveis antes do merge com integrações (performance).
+**Referência PRD:** → TarefasV2 T2-09; PRD §8.10
+**Bloqueado por:** T2-07, T2-08
+**Input:** Integrações sem lazy filter.
+**Output esperado:** `fetch_shortages_db(url, codigos_visible)` e `fetch_donotbuy_list(url, aliases, codigos_visible)` filtram antes do merge.
+**Critérios de Aceitação:**
+- [ ] Lazy filter: com `codigos_visible={123}` → apenas linhas com CNP 123 retidas.
+- [ ] Sem `codigos_visible` → merge completo (backward compatible).
+**Notas de Implementação:** Reduz volume de dados processados quando dataset tem muitos produtos.
+**Estimativa:** S
+
+---
+
+### T2-10 — Corrigir formato de datas
+**Objectivo:** Corrigir formatação de datas (DIR, DPR, DATA_OBS) para `dd-MM-yyyy` consistente.
+**Referência PRD:** → TarefasV2 T2-10; PRD §6.2.1
+**Bloqueado por:** —
+**Input:** Datas com formatos inconsistentes.
+**Output esperado:** Todas as datas de integrações formatadas como `dd-MM-yyyy`.
+**Critérios de Aceitação:**
+- [ ] DIR e DPR sempre em `dd-MM-yyyy`.
+- [ ] DATA_OBS sempre em `dd-MM-yyyy`.
+**Notas de Implementação:** `dt.strftime('%d-%m-%Y')` uniformizado.
+**Estimativa:** XS
+
+---
+
+### T2-12 — Alinhar estrutura de secrets
+**Objectivo:** Padronizar chaves de secrets para `SHORTAGES_URL` e `DONOTBUY_URL` (pré-requisito para Django settings).
+**Referência PRD:** → TarefasV2 T2-12
+**Bloqueado por:** T2-01
+**Input:** `secrets.toml` com chaves possivelmente inconsistentes.
+**Output esperado:** Chaves padronizadas: `SHORTAGES_SHEET_URL` e `DONOTBUY_SHEET_URL`.
+**Critérios de Aceitação:**
+- [ ] `secrets_loader.py` usa chaves padronizadas.
+- [ ] `.env.example` actualizado com as novas chaves.
+**Notas de Implementação:** Facilita mapeamento directo para Django settings (MIG-1.6).
+**Estimativa:** XS
+
+---
+
+### T2-13 — Completar constants.py
+**Objectivo:** Adicionar constantes em falta em `constants.py` necessárias para geração de classes CSS.
+**Referência PRD:** → TarefasV2 T2-13
+**Bloqueado por:** —
+**Input:** `constants.py` com constantes em falta.
+**Output esperado:** Todas as constantes usadas pelo domínio presentes em `constants.py`, incluindo nomes de classes CSS para formatação condicional.
+**Critérios de Aceitação:**
+- [ ] Nenhum `import` de constantes de outro módulo que não `constants.py`.
+- [ ] Constantes CSS para regras de formatação (grupo, nao-comprar, rutura, validade, preco-anomalo).
+**Notas de Implementação:** Necessário para `orders.css` e `_prepare_rows()` na migração.
+**Estimativa:** XS
+
+---
+
+### T2-16 — Renomear `master_products` → `df_master_products`
+**Objectivo:** Alinhar nomenclatura com PRD: renomear variável `master_products` para `df_master_products`.
+**Referência PRD:** → TarefasV2 T2-16; PRD §5.3.3
+**Bloqueado por:** —
+**Input:** Variável `master_products` usada em vários módulos.
+**Output esperado:** Variável renomeada para `df_master_products` em todos os ficheiros.
+**Critérios de Aceitação:**
+- [ ] `grep -r "master_products" orders_master/` → 0 matches (excepto comentários).
+- [ ] `grep -r "df_master_products" orders_master/` → matches correctos.
+- [ ] Testes passam.
+**Notas de Implementação:** Refactoring simples com `replace_all`.
+**Estimativa:** XS
+
+---
+
+## FASE 9 — Django Setup
+
+### MIG-0.1 — Scaffold do projecto Django
+**Objectivo:** Criar o scaffold do projecto Django 5.x com 3 apps (accounts, backoffice, orders) e split settings.
+**Referência PRD:** → Spec §2 (Architecture), §3 (Tech Stack)
+**Bloqueado por:** T2-02 (remover Streamlit do domínio)
+**Input:** Repositório com `orders_master/` limpo de Streamlit.
+**Output esperado:**
+- `orders_master_saas/` com `manage.py`, split settings (base/development/production), 3 apps, `pyproject.toml`, `requirements.txt`, `Procfile`, `.env.example`.
+- `python manage.py check` → 0 issues.
+**Critérios de Aceitação:**
+- [ ] `pip install -r requirements.txt -r requirements-dev.txt` completa sem erros.
+- [ ] `DJANGO_SETTINGS_MODULE=orders_master_saas.settings.development python manage.py check` → 0 issues.
+- [ ] 3 apps criadas: `accounts`, `backoffice`, `orders`.
+- [ ] Middleware inclui `TenantMiddleware` placeholder.
+- [ ] `LOGIN_URL`, `LOGIN_REDIRECT_URL`, `LOGOUT_REDIRECT_URL` configurados.
+**Notas de Implementação:** Usar SQLite em development, PostgreSQL em production. Redis cache em production. Settings usam `from .base import *` pattern.
+**Estimativa:** M
+
+---
+
+### MIG-0.2 — Copiar pacote de domínio para projecto Django
+**Objectivo:** Copiar `orders_master/` para `orders_master_saas/orders_master/` e adicionar ao `INSTALLED_APPS`.
+**Referência PRD:** → Spec §4 (Domain Adaptation)
+**Bloqueado por:** MIG-0.1
+**Input:** Scaffold Django criado.
+**Output esperado:** `orders_master_saas/orders_master/` idêntico ao original (com adaptações de MIG-1.x ainda pendentes); importável.
+**Critérios de Aceitação:**
+- [ ] `python -c "import orders_master"` funciona dentro de `orders_master_saas/`.
+- [ ] Estrutura de ficheiros idêntica ao original.
+**Notas de Implementação:** `cp -r orders_master/ orders_master_saas/orders_master/`. Adicionar `"orders_master"` a `INSTALLED_APPS`.
+**Estimativa:** XS
+
+---
+
+### MIG-0.3 — Adicionar TailwindCSS + HTMX ao projecto Django
+**Objectivo:** Configurar TailwindCSS via CDN, HTMX, e CSS condicional para tabela (5 regras de formatação).
+**Referência PRD:** → Spec §5 (UI), ADR-M06 (HTML+CSS > Styler)
+**Bloqueado por:** MIG-0.1
+**Input:** Scaffold Django.
+**Output esperado:**
+- `templates/base.html` com TailwindCSS CDN, HTMX, navbar, messages.
+- `static/css/orders.css` com 5 regras CSS condicionais (grupo, nao-comprar, rutura, validade-curta, preco-anomalo).
+- `static/css/app.css` com Scope Bar, Banner, File Inventory styles.
+- `static/js/app.js` com HTMX config.
+**Critérios de Aceitação:**
+- [ ] `base.html` renderiza sem erros.
+- [ ] CSS contém 5 regras condicionais com selectores correctos (`.row-grupo`, `.row-nao-comprar`, `.cell-rutura`, `.cell-validade-curta`, `.cell-preco-anomalo`).
+- [ ] HTMX script carregado via CDN.
+**Notas de Implementação:** TailwindCSS via CDN é o approach mais simples para Railway (ADR: simplicidade > build step).
+**Estimativa:** S
+
+---
+
+## FASE 10 — Adaptação do Domínio (Remover Streamlit)
+
+### MIG-1.1 — Criar decorator Django cache (substitui @st.cache_data)
+**Objectivo:** Criar `django_cache_decorator` que substitui `@st.cache_data` com interface compatível.
+**Referência PRD:** → Spec §4.1 (Cache Strategy)
+**Bloqueado por:** MIG-0.2
+**Input:** Pacote de domínio copiado.
+**Output esperado:** `orders_master/integrations/django_cache.py` com `django_cache_decorator(timeout, key_prefix)` que usa `django.core.cache`.
+**Critérios de Aceitação:**
+- [ ] Teste: mesmo input → cache hit (não chama função de novo).
+- [ ] Teste: input diferente → cache miss (chama função).
+- [ ] Teste: prefixos diferentes → keys isoladas.
+- [ ] Key gerada com MD5 hash de `args + kwargs`.
+**Notas de Implementação:** `django_cache_decorator(timeout=3600, key_prefix="")`. Key format: `omc:{prefix}:{md5}`.
+**Estimativa:** S
+
+---
+
+### MIG-1.2 — Adaptar shortages.py — remover Streamlit, usar Django cache
+**Objectivo:** Substituir `import streamlit` e `@st.cache_data` em `shortages.py` por `django_cache_decorator`.
+**Referência PRD:** → Spec §4.2 (Integration Adaptation)
+**Bloqueado por:** MIG-1.1
+**Input:** `django_cache_decorator` implementado.
+**Output esperado:** `shortages.py` sem `import streamlit`; `cache_decorator = django_cache_decorator(timeout=3600, key_prefix="shortages")`; `st.sidebar.warning` removido.
+**Critérios de Aceitação:**
+- [ ] `grep "import streamlit" orders_master/integrations/shortages.py` → 0 matches.
+- [ ] Testes existentes passam.
+**Notas de Implementação:** Fallback `except ImportError: cache_decorator = lambda f: f` para uso sem Django.
+**Estimativa:** XS
+
+---
+
+### MIG-1.3 — Adaptar donotbuy.py — remover Streamlit, usar Django cache
+**Objectivo:** Substituir `import streamlit` e `@st.cache_data` em `donotbuy.py` por `django_cache_decorator`.
+**Referência PRD:** → Spec §4.2
+**Bloqueado por:** MIG-1.1
+**Input:** `django_cache_decorator` implementado.
+**Output esperado:** `donotbuy.py` sem `import streamlit`; `cache_decorator = django_cache_decorator(timeout=3600, key_prefix="donotbuy")`.
+**Critérios de Aceitação:**
+- [ ] `grep "import streamlit" orders_master/integrations/donotbuy.py` → 0 matches.
+- [ ] Testes existentes passam.
+**Notas de Implementação:** Mesmo padrão de T2-02 / MIG-1.2.
+**Estimativa:** XS
+
+---
+
+### MIG-1.4 — Adaptar averages.py — remover Streamlit, adicionar loader DB
+**Objectivo:** Remover `import streamlit` e `@st.cache_data` de `averages.py`; adicionar `load_presets_from_db()` com fallback YAML.
+**Referência PRD:** → Spec §4.3 (Config Migration)
+**Bloqueado por:** MIG-0.2
+**Input:** Pacote de domínio copiado.
+**Output esperado:** `averages.py` sem `import streamlit`; `load_presets()` tenta DB primeiro, fallback YAML.
+**Critérios de Aceitação:**
+- [ ] `grep "import streamlit" orders_master/business_logic/averages.py` → 0 matches.
+- [ ] `load_presets()` com DB vazio → fallback para YAML.
+- [ ] Testes existentes passam.
+**Notas de Implementação:** `try: from orders.models import ConfigPesoPreset` com `except Exception` para fallback.
+**Estimativa:** XS
+
+---
+
+### MIG-1.5 — Adaptar config loaders — remover Streamlit, adicionar loaders DB
+**Objectivo:** Remover `import streamlit` e `@st.cache_data` de `labs_loader.py`, `locations_loader.py`; adicionar `load_labs_from_db()` e `load_locations_from_db()`.
+**Referência PRD:** → Spec §4.3
+**Bloqueado por:** MIG-0.2
+**Input:** Pacote de domínio copiado.
+**Output esperado:**
+- `labs_loader.py`: sem Streamlit, com `load_labs_from_db(client_id)`.
+- `locations_loader.py`: sem Streamlit, com `load_locations_from_db(client_id)`.
+- `presets_loader.py`: com `load_presets_from_db()`.
+**Critérios de Aceitação:**
+- [ ] `grep -r "import streamlit" orders_master/config/` → 0 matches.
+- [ ] Loaders DB com fallback gracioso se tabela não existe.
+- [ ] Testes existentes passam.
+**Notas de Implementação:** Client-specific overrides para locations (global first, then client overrides). `except Exception: return {}` para robustez.
+**Estimativa:** S
+
+---
+
+### MIG-1.6 — Adaptar secrets_loader e session_service — substituir st.secrets
+**Objectivo:** Substituir `st.secrets` por Django settings em `secrets_loader.py` e `session_service.py`.
+**Referência PRD:** → Spec §4.4 (Secrets Migration)
+**Bloqueado por:** MIG-0.2
+**Input:** Pacote de domínio copiado.
+**Output esperado:**
+- `secrets_loader.py`: usa `django.conf.settings` em vez de `st.secrets`.
+- `session_service.py`: recebe URLs como parâmetros em vez de ler `st.secrets`.
+**Critérios de Aceitação:**
+- [ ] `grep "import streamlit" orders_master/secrets_loader.py orders_master/app_services/session_service.py` → 0 matches.
+- [ ] `get_secret("SHORTAGES_SHEET_URL")` → lê de `settings.SHORTAGES_SHEET_URL`.
+- [ ] `process_orders_session()` aceita `shortages_url` e `donotbuy_url` como kwargs.
+- [ ] Testes existentes passam.
+**Notas de Implementação:** `getattr(settings, parts[0].upper(), None)` para navegação hierárquica.
+**Estimativa:** S
+
+---
+
+### MIG-1.7 — Adaptar session_state.py — remover st.session_state facade
+**Objectivo:** Remover funções `get_state()` e `reset_state()` que dependem de `st.session_state`; manter dataclasses puras.
+**Referência PRD:** → Spec §4.5 (Session State Migration)
+**Bloqueado por:** MIG-0.2
+**Input:** Pacote de domínio copiado.
+**Output esperado:** `session_state.py` contém apenas `SessionState`, `ScopeContext`, `FileInventoryEntry` como dataclasses puras; zero `import streamlit`.
+**Critérios de Aceitação:**
+- [ ] `grep "import streamlit" orders_master/app_services/session_state.py` → 0 matches.
+- [ ] `from orders_master.app_services.session_state import SessionState` funciona sem Streamlit.
+**Notas de Implementação:** Django views gerem estado via Redis cache, não via `st.session_state`.
+**Estimativa:** XS
+
+---
+
+### MIG-1.8 — Verificar zero imports Streamlit em orders_master/
+**Objectivo:** Garantir que `orders_master_saas/orders_master/` não tem nenhuma referência a Streamlit (NFR-M4).
+**Referência PRD:** → Spec §4.6 (Streamlit Removal Verification)
+**Bloqueado por:** MIG-1.2, MIG-1.3, MIG-1.4, MIG-1.5, MIG-1.6, MIG-1.7
+**Input:** Todas as adaptações MIG-1.x completas.
+**Output esperado:** `grep -r "import streamlit" orders_master_saas/orders_master/` → 0 matches; todos os testes passam.
+**Critérios de Aceitação:**
+- [ ] Zero `import streamlit` em todo `orders_master/`.
+- [ ] `pytest tests/unit/ -v` → todos passam.
+- [ ] `grep -r "st\.cache_data\|st\.session_state\|st\.secrets\|st\.sidebar" orders_master/` → 0 matches.
+**Notas de Implementação:** Gate final antes de avançar para models. Se houver restos, adicionar ao commit de cleanup.
+**Estimativa:** XS
+
+---
+
+## FASE 11 — Models & Config Migration
+
+### MIG-2.1 — Criar models de accounts (Cliente, Farmacia, Subscricao, UserProfile)
+**Objectivo:** Implementar os 4 models de accounts: `Cliente`, `Farmacia` (com localizacao_key), `Subscricao` (com plano e bd_rupturas_ativa), `UserProfile`.
+**Referência PRD:** → Spec §3.1 (Auth & Tenancy), §3.2 (Subscription Model)
+**Bloqueado por:** MIG-0.1
+**Input:** Scaffold Django com app `accounts`.
+**Output esperado:** `accounts/models.py` com 4 models; migrações criadas; testes passam.
+**Critérios de Aceitação:**
+- [ ] `Cliente` tem `nome`, `nif`, `email`, `ativo`.
+- [ ] `Farmacia` tem `cliente` FK, `nome`, `localizacao_key`, `alias`, `ativa`, `licenciada_ate`. `unique_together = ["cliente", "localizacao_key"]`.
+- [ ] `Subscricao` tem `plano` (BAS/PRO/ENT), `bd_rupturas_ativa`, `data_inicio`, `data_fim`.
+- [ ] `UserProfile` tem `user` O2O, `cliente` FK, `role` (admin/compras/farmacia).
+- [ ] `pytest accounts/tests/test_models.py` → PASS.
+**Notas de Implementação:** `Subscricao` é O2O com `Cliente`. `Farmacia.localizacao_key` é o campo exacto do Infoprex para matching de licença.
+**Estimativa:** M
+
+---
+
+### MIG-2.2 — Criar models de orders (ConfigLaboratorio, ConfigLocalizacao, ConfigPesoPreset, SessaoProcessamento)
+**Objectivo:** Implementar models de configuração em `orders/models.py` com suporte a JSONField para listas.
+**Referência PRD:** → Spec §3.3 (Config Models)
+**Bloqueado por:** MIG-2.1
+**Input:** Models de accounts criados.
+**Output esperado:** `orders/models.py` com 4 models; migrações; testes passam.
+**Critérios de Aceitação:**
+- [ ] `ConfigLaboratorio` tem `nome` (unique), `codigos_cla` (JSONField), `ativo`.
+- [ ] `ConfigLocalizacao` tem `cliente` FK (nullable = global), `search_term`, `alias`. `unique_together = ["cliente", "search_term"]`.
+- [ ] `ConfigPesoPreset` tem `nome` (unique), `pesos` (JSONField, lista de 4 floats).
+- [ ] `SessaoProcessamento` tem `cliente` FK, `utilizador` FK, `num_ficheiros`, `num_produtos`, `lab_selecionados` (JSONField).
+- [ ] `pytest orders/tests/test_config_models.py` → PASS.
+**Notas de Implementação:** `ConfigLocalizacao.cliente = null` significa config global. Client-specific configs sobrepõem-se às globais.
+**Estimativa:** M
+
+---
+
+### MIG-2.3 — Criar management commands para importar JSON/YAML configs
+**Objectivo:** Criar comandos `import_labs_json`, `import_locations_json`, `import_presets_yaml` para migrar configs existentes para DB.
+**Referência PRD:** → Spec §3.4 (Config Import)
+**Bloqueado por:** MIG-2.2
+**Input:** Models de orders criados.
+**Output esperado:** 3 management commands em `backoffice/management/commands/`; testes; dados importados.
+**Critérios de Aceitação:**
+- [ ] `python manage.py import_labs_json config/laboratorios.json` → popula `ConfigLaboratorio`.
+- [ ] `python manage.py import_locations_json config/localizacoes.json` → popula `ConfigLocalizacao` (global).
+- [ ] `python manage.py import_presets_yaml config/presets.yaml` → popula `ConfigPesoPreset`.
+- [ ] `update_or_create` — re-executar não duplica, actualiza.
+- [ ] `pytest backoffice/tests/test_import_commands.py` → PASS.
+**Notas de Implementação:** Usar `update_or_create` para idempotência. Comandos ficam em app `backoffice`.
+**Estimativa:** S
+
+---
+
+## FASE 12 — Auth & Multi-Tenancy
+
+### MIG-3.1 — Implementar TenantMiddleware
+**Objectivo:** Criar middleware que atribui `request.tenant = user.profile.cliente` para utilizadores autenticados.
+**Referência PRD:** → Spec §3.5 (Multi-Tenancy), ADR-M01
+**Bloqueado por:** MIG-2.1
+**Input:** Models de accounts com UserProfile.
+**Output esperado:** `accounts/middleware.py` com `TenantMiddleware`; `request.tenant` disponível em views.
+**Critérios de Aceitação:**
+- [ ] Utilizador autenticado → `request.tenant == user.profile.cliente`.
+- [ ] Utilizador anónimo → `request.tenant is None` (sem crash).
+- [ ] Utilizador sem profile → `request.tenant is None` (gracioso).
+- [ ] `pytest orders/tests/test_multitenancy.py` → PASS.
+**Notas de Implementação:** Middleware na posição após `AuthenticationMiddleware`. Try/except para `user.profile` (pode não existir).
+**Estimativa:** S
+
+---
+
+### MIG-3.2 — Criar views de login/logout e templates
+**Objectivo:** Implementar autenticação com Django auth views customizadas e template de login.
+**Referência PRD:** → Spec §3.6 (Auth)
+**Bloqueado por:** MIG-3.1
+**Input:** TenantMiddleware implementado.
+**Output esperado:** `accounts/views.py` com `OrdersLoginView`; `templates/registration/login.html`; URLs configuradas.
+**Critérios de Aceitação:**
+- [ ] Página de login renderiza com TailwindCSS.
+- [ ] Login com credenciais válidas → redirect para `/orders/`.
+- [ ] `redirect_authenticated_user = True` (já autenticado → redirect).
+- [ ] Logout → redirect para login.
+- [ ] `python manage.py check` → 0 issues.
+**Notas de Implementação:** `LoginView` nativa do Django com template custom. Formulário em PT-PT.
+**Estimativa:** S
+
+---
+
+### MIG-3.3 — Criar customizações Django Admin
+**Objectivo:** Configurar Django Admin para gestão de clientes, farmácias, subscrições e configs.
+**Referência PRD:** → Spec §3.7 (Admin)
+**Bloqueado por:** MIG-2.2, MIG-2.3
+**Input:** Todos os models criados.
+**Output esperado:**
+- `accounts/admin.py` com `ClienteAdmin` (inline Farmacia), `FarmaciaAdmin` (acções activar/desactivar), `SubscricaoAdmin`, `UserProfileInline`.
+- `backoffice/admin.py` com `ConfigLaboratorioAdmin`, `ConfigLocalizacaoAdmin`, `ConfigPesoPresetAdmin`.
+**Critérios de Aceitação:**
+- [ ] `ClienteAdmin` mostra `n_farmacias` e tem inline de Farmacia.
+- [ ] `FarmaciaAdmin` tem acções `activar` / `desactivar`.
+- [ ] `ConfigLocalizacaoAdmin` mostra escopo (Global vs cliente).
+- [ ] `UserProfileInline` no `UserAdmin`.
+- [ ] `python manage.py check` → 0 issues.
+**Notas de Implementação:** `admin.site.unregister(User)` + `admin.site.register(User, UserAdmin)` para adicionar inline.
+**Estimativa:** S
+
+---
+
+## FASE 13 — Views & Templates (Core UI)
+
+### MIG-4.1 — Criar ProcessingSession (armazenamento Redis de DataFrames)
+**Objectivo:** Criar classe `ProcessingSession` que armazena/recupera DataFrames via cache Redis (serialização Parquet).
+**Referência PRD:** → Spec §4.7 (Session Storage), ADR-M02
+**Bloqueado por:** MIG-0.1
+**Input:** Django com cache configurado.
+**Output esperado:** `orders/services/processing_session.py` com `store(name, df)`, `get(name) → DataFrame | None`, `store_value(name, val)`, `get_value(name)`, `clear()`.
+**Critérios de Aceitação:**
+- [ ] `store("test_df", df)` + `get("test_df")` → DataFrame idêntico.
+- [ ] `get("nonexistent")` → `None`.
+- [ ] `clear()` → todos os dados removidos.
+- [ ] Serialização via Parquet (não pickle).
+- [ ] TTL de 1 hora por defeito.
+- [ ] `pytest orders/tests/test_processing_session.py` → PASS.
+**Notas de Implementação:** Key format: `om:session:{session_key}:{name}`. `df.to_parquet()` / `pd.read_parquet()` para DataFrames. `cache.set/get` para valores simples.
+**Estimativa:** S
+
+---
+
+### MIG-4.2 — Criar view de upload e template
+**Objectivo:** Implementar `upload_view`, `results_view`, `recalc_view` (HTMX), `download_excel_view`, forms, URLs.
+**Referência PRD:** → Spec §5 (UI Implementation)
+**Bloqueado por:** MIG-1.8, MIG-4.1, MIG-2.2
+**Input:** Domínio limpo, ProcessingSession, models.
+**Output esperado:**
+- `orders/views.py` com 4 views (upload, results, recalc, download).
+- `orders/forms.py` com `UploadForm`, `RecalcForm`.
+- `orders/urls.py` com 4 URL patterns.
+- `_prepare_rows()` que converte DataFrame + RULES em dicts com classes CSS.
+- `templates/orders/upload.html`.
+**Critérios de Aceitação:**
+- [ ] Upload de 2+ ficheiros Infoprex → redirect para results.
+- [ ] Results view mostra tabela com formatação condicional.
+- [ ] HTMX recalc → apenas tabela actualiza (sem full reload).
+- [ ] Download Excel → ficheiro `.xlsx` válido.
+- [ ] `@login_required` em todas as views.
+**Notas de Implementação:** `_prepare_rows()` é a função central que substitui Pandas Styler — aplica RULES e gera `cell_classes` para o template. `_reconstruct_state()` reconstrói `SessionState` a partir de `ProcessingSession`.
+**Estimativa:** L
+
+---
+
+### MIG-4.3 — Criar template de resultados com tabela condicional
+**Objectivo:** Criar templates de resultados, partials HTMX, template tags, e componentes (scope bar, file inventory, banner).
+**Referência PRD:** → Spec §5.1 (Template Architecture)
+**Bloqueado por:** MIG-4.2
+**Input:** Views implementadas.
+**Output esperado:**
+- `templates/orders/results.html` — layout principal.
+- `templates/orders/_table_rows.html` — partial HTMX com tabela condicional.
+- `templates/orders/_controls.html` — toggles/slider/preset.
+- `templates/orders/_scope_bar.html`, `_file_inventory.html`, `_banner.html`.
+- `orders/templatetags/table_tags.py` — filtros `get`, `join`.
+**Critérios de Aceitação:**
+- [ ] Tabela renderiza com 5 regras CSS (grupo preto, nao-comprar roxo, rutura vermelho, validade laranja, preco-anomalo vermelho).
+- [ ] HTMX `hx-post` / `hx-target="#table-container"` funciona.
+- [ ] Scope bar mostra métricas correctas.
+- [ ] File inventory mostra estado dos ficheiros.
+- [ ] Banner BD Rupturas mostra data ou fallback.
+**Notas de Implementação:** `_table_rows.html` usa `row.row_classes` e `row.cell_classes` gerados por `_prepare_rows()`. Template tag `get` para dict lookup em templates.
+**Estimativa:** M
+
+---
+
+### MIG-4.4 — Implementar validação de licença no upload
+**Objectivo:** Validar que o campo LOCALIZACAO dos ficheiros Infoprex corresponde a uma Farmacia licenciada do cliente.
+**Referência PRD:** → Spec §3.8 (License Validation), ADR-012
+**Bloqueado por:** MIG-4.2, MIG-2.1
+**Input:** Views e models de accounts.
+**Output esperado:** `orders/services/license.py` com `validate_localizacao(localizacao, cliente) → Farmacia | None`; integração em `_process_upload()`.
+**Critérios de Aceitação:**
+- [ ] Ficheiro de farmácia licenciada → aceite.
+- [ ] Ficheiro de farmácia não licenciada → rejeitado com erro claro.
+- [ ] Matching substring case-insensitive (consistente com ADR-012).
+- [ ] `pytest orders/tests/test_license_validation.py` → PASS.
+**Notas de Implementação:** `Farmacia.localizacao_key.lower() in localizacao.lower()` — substring bidireccional.
+**Estimativa:** S
+
+---
+
+## FASE 14 — Features & Subscrições
+
+### MIG-5.1 — Implementar feature flag BD Rupturas
+**Objectivo:** Controlar acesso à BD Rupturas via `Subscricao.bd_rupturas_ativa`; ocultar banner quando inactivo.
+**Referência PRD:** → Spec §3.9 (Feature Flags)
+**Bloqueado por:** MIG-4.2, MIG-2.1
+**Input:** Views e models com Subscricao.
+**Output esperado:** Verificação de `request.tenant.subscricao.bd_rupturas_ativa` antes de fetch de shortages; banner condicional.
+**Critérios de Aceitação:**
+- [ ] Cliente com `bd_rupturas_ativa=True` + `subscricao.ativa=True` → dados de rutura visíveis.
+- [ ] Cliente com `bd_rupturas_ativa=False` → sem merge de shortages, sem banner.
+- [ ] Banner oculto quando feature inactiva.
+**Notas de Implementação:** Check em `_process_upload()` antes de chamar integrações. Passar `bd_rupturas_active` no contexto do template.
+**Estimativa:** XS
+
+---
+
+### MIG-5.2 — Verificação de expiração de subscrição
+**Objectivo:** Adicionar verificação de subscrição expirada no middleware e bloquear acesso quando expirada.
+**Referência PRD:** → Spec §3.10 (Subscription Expiry)
+**Bloqueado por:** MIG-3.1, MIG-2.1
+**Input:** TenantMiddleware e models.
+**Output esperado:** `request.subscription_expired = True` quando `data_fim < today`; views bloqueiam acesso; template de subscrição expirada.
+**Critérios de Aceitação:**
+- [ ] Subscrição expirada → acesso bloqueado com página 403.
+- [ ] Subscrição activa → acesso normal.
+- [ ] Sem subscrição → acesso bloqueado.
+- [ ] Template `subscription_expired.html` informativo.
+**Notas de Implementação:** `request.subscription_expired` definido em `TenantMiddleware`. Check no topo de views protegidas.
+**Estimativa:** XS
+
+---
+
+## FASE 15 — Produção & Deploy
+
+### MIG-6.1 — Configurar deploy Railway
+**Objectivo:** Configurar Procfile, CI/CD GitHub Actions, e variáveis de ambiente para deploy em Railway.
+**Referência PRD:** → Spec §6 (Deployment)
+**Bloqueado por:** MIG-4.3, MIG-5.1, MIG-5.2
+**Input:** Todas as features implementadas.
+**Output esperado:**
+- `Procfile` com `migrate + collectstatic + gunicorn`.
+- `.github/workflows/deploy.yml` com CI (lint, typecheck, test, coverage ≥80%).
+**Critérios de Aceitação:**
+- [ ] CI corre em push e PR.
+- [ ] Lint: `ruff check .` → 0 erros.
+- [ ] Typecheck: `mypy --strict` → 0 erros.
+- [ ] Testes: `pytest --cov=orders_master --cov-fail-under=80` → PASS.
+- [ ] Deploy: `gunicorn` com 4 workers.
+**Notas de Implementação:** Procfile: `web: python manage.py migrate && python manage.py collectstatic --noinput && gunicorn ...`. CI usa `DJANGO_SETTINGS_MODULE=orders_master_saas.settings.development`.
+**Estimativa:** S
+
+---
+
+### MIG-6.2 — Verificar zero Streamlit em todo o projecto
+**Objectivo:** Gate final: garantir que `orders_master_saas/` não tem nenhuma referência a Streamlit (NFR-M4).
+**Referência PRD:** → Spec §7 (NFRs)
+**Bloqueado por:** MIG-1.8, MIG-6.1
+**Input:** Projecto completo.
+**Output esperado:** `grep -r "streamlit" orders_master_saas/ --include="*.py"` → 0 matches; `pytest --cov=orders_master --cov-fail-under=80` → PASS.
+**Critérios de Aceitação:**
+- [ ] Zero `import streamlit` em todo o projecto Django.
+- [ ] Zero `st.cache_data`, `st.session_state`, `st.secrets`, `st.sidebar` em `orders_master/`.
+- [ ] Coverage ≥ 80% em `orders_master/`.
+- [ ] Todos os testes passam.
+**Notas de Implementação:** Commit de verificação. Se encontrar restos, corrigir antes de commitar.
+**Estimativa:** XS
+
+---
+
+### MIG-6.3 — Smoke test checklist Django
+**Objectivo:** Criar checklist de smoke test manual para validação final do Django SaaS.
+**Referência PRD:** → Spec §8 (Testing)
+**Bloqueado por:** MIG-6.2
+**Input:** Projecto completo e verificado.
+**Output esperado:** `docs/smoke_test_django.md` com 5 fluxos: Upload+Processamento, Recálculo HTMX, Validação Licença, Multi-Tenancy, Subscrição.
+**Critérios de Aceitação:**
+- [ ] Fluxo 1: login → seleccionar lab → carregar ficheiros → processar → tabela formatada.
+- [ ] Fluxo 2: toggles/slider/preset → tabela recalcula sem reload.
+- [ ] Fluxo 3: farmácia não licenciada → rejeitada.
+- [ ] Fluxo 4: utilizador A não vê dados do B.
+- [ ] Fluxo 5: BD Rupturas visível/invisível conforme subscrição; subscrição expirada → bloqueio.
+**Notas de Implementação:** Documento markdown com instruções passo-a-passo reprodutíveis e critérios pass/fail.
+**Estimativa:** S
+
+---
+
+## Mapa de Dependências — Migração Django
+
+```mermaid
+graph TD
+    subgraph "FASE 8 — Pré-Migração"
+        T201["T2-01<br/>gitignore secrets"]
+        T202["T2-02<br/>Remover Streamlit domínio"]
+        T203["T2-03<br/>Bug filtro marcas"]
+        T207["T2-07<br/>Vectorizar shortages"]
+        T208["T2-08<br/>Vectorizar donotbuy"]
+        T209["T2-09<br/>Lazy merge"]
+        T210["T2-10<br/>Formato datas"]
+        T212["T2-12<br/>Alinhar secrets"]
+        T213["T2-13<br/>Completar constants"]
+        T216["T2-16<br/>Renomear master_products"]
+    end
+
+    subgraph "FASE 9 — Django Setup"
+        M01["MIG-0.1<br/>Scaffold Django"]
+        M02["MIG-0.2<br/>Copiar domínio"]
+        M03["MIG-0.3<br/>TailwindCSS + HTMX"]
+    end
+
+    subgraph "FASE 10 — Adaptação Domínio"
+        M11["MIG-1.1<br/>Django cache decorator"]
+        M12["MIG-1.2<br/>Adaptar shortages"]
+        M13["MIG-1.3<br/>Adaptar donotbuy"]
+        M14["MIG-1.4<br/>Adaptar averages"]
+        M15["MIG-1.5<br/>Adaptar config loaders"]
+        M16["MIG-1.6<br/>Adaptar secrets/session"]
+        M17["MIG-1.7<br/>Remover session_state"]
+        M18["MIG-1.8<br/>Verificar zero Streamlit"]
+    end
+
+    subgraph "FASE 11 — Models"
+        M21["MIG-2.1<br/>Accounts models"]
+        M22["MIG-2.2<br/>Orders models"]
+        M23["MIG-2.3<br/>Import commands"]
+    end
+
+    subgraph "FASE 12 — Auth & Multi-Tenancy"
+        M31["MIG-3.1<br/>TenantMiddleware"]
+        M32["MIG-3.2<br/>Login/Logout"]
+        M33["MIG-3.3<br/>Django Admin"]
+    end
+
+    subgraph "FASE 13 — Views & Templates"
+        M41["MIG-4.1<br/>ProcessingSession"]
+        M42["MIG-4.2<br/>Upload + Results views"]
+        M43["MIG-4.3<br/>Resultados template"]
+        M44["MIG-4.4<br/>Licença validação"]
+    end
+
+    subgraph "FASE 14 — Features"
+        M51["MIG-5.1<br/>BD Rupturas flag"]
+        M52["MIG-5.2<br/>Subscrição expiração"]
+    end
+
+    subgraph "FASE 15 — Deploy"
+        M61["MIG-6.1<br/>Railway deploy"]
+        M62["MIG-6.2<br/>Zero Streamlit verify"]
+        M63["MIG-6.3<br/>Smoke test"]
+    end
+
+    %% Pré-Migração deps
+    T201 --> T202
+    T202 --> T207
+    T202 --> T208
+    T207 --> T209
+    T208 --> T209
+    T201 --> T212
+
+    %% Django Setup deps
+    T202 --> M01
+    M01 --> M02
+    M01 --> M03
+
+    %% Adaptação Domínio deps
+    M02 --> M11
+    M11 --> M12
+    M11 --> M13
+    M02 --> M14
+    M02 --> M15
+    M02 --> M16
+    M02 --> M17
+    M12 --> M18
+    M13 --> M18
+    M14 --> M18
+    M15 --> M18
+    M16 --> M18
+    M17 --> M18
+
+    %% Models deps
+    M01 --> M21
+    M21 --> M22
+    M22 --> M23
+
+    %% Auth deps
+    M21 --> M31
+    M31 --> M32
+    M22 --> M33
+    M23 --> M33
+
+    %% Views deps
+    M18 --> M42
+    M01 --> M41
+    M22 --> M42
+    M41 --> M42
+    M42 --> M43
+    M42 --> M44
+    M21 --> M44
+
+    %% Features deps
+    M42 --> M51
+    M21 --> M51
+    M31 --> M52
+    M21 --> M52
+
+    %% Deploy deps
+    M43 --> M61
+    M51 --> M61
+    M52 --> M61
+    M18 --> M62
+    M61 --> M62
+    M62 --> M63
+```
+
+### Caminho Crítico — Migração
+
+```
+T2-02 → MIG-0.1 → MIG-0.2 → MIG-1.1 → MIG-1.2 → MIG-1.8 → MIG-4.2 → MIG-4.3 → MIG-6.1 → MIG-6.2 → MIG-6.3
+```
+
+### Tarefas Paralelas — Migração
+
+| Paralelo com | Tarefas |
+|---|---|
+| MIG-0.2 | MIG-0.3 (ambas dependem de MIG-0.1) |
+| MIG-1.2 | MIG-1.3 (ambas dependem de MIG-1.1) |
+| MIG-1.4 | MIG-1.5, MIG-1.6, MIG-1.7 (todas dependem de MIG-0.2) |
+| MIG-2.1 | MIG-1.x (fases independentes) |
+| MIG-3.1 | MIG-2.2, MIG-2.3 (após MIG-2.1) |
+| MIG-5.1 | MIG-5.2 (independentes entre si) |
+
+---
+
+*tasks.md completo. 50 tarefas Streamlit + 10 correcções TarefasV2 + 25 tarefas Migração Django = 85 tarefas detalhadas.*
