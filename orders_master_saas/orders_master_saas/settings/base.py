@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "accounts",
     "backoffice",
     "orders",
+    "orders_master",
 ]
 
 MIDDLEWARE = [

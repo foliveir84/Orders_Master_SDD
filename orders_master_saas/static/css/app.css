@@ -1,0 +1,114 @@
+/* ==========================================================================
+   app.css — Application-level styles (scope bar, banners, file inventory)
+   ========================================================================== */
+
+/* ── Scope bar ───────────────────────────────────────────────────────────── */
+
+.scope-bar {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border: 1px solid #b0bec5;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.scope-bar .scope-label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.scope-bar .scope-value {
+    color: #1e40af;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.scope-bar .scope-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* ── BD Rupturas banner ──────────────────────────────────────────────────── */
+
+.banner-rupturas {
+    background: linear-gradient(135deg, #e0f7fa 0%, #f1f8e9 100%);
+    border: 1px solid #80cbc4;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.banner-rupturas .banner-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.banner-rupturas .banner-text {
+    font-size: 0.8125rem;
+    color: #374151;
+    line-height: 1.4;
+}
+
+.banner-rupturas .banner-text strong {
+    color: #00695c;
+}
+
+/* ── File inventory ──────────────────────────────────────────────────────── */
+
+.file-inventory {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.file-inventory .file-inventory-header {
+    background-color: #f9fafb;
+    padding: 0.625rem 1rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.file-inventory .file-inventory-list {
+    padding: 0;
+    list-style: none;
+    margin: 0;
+}
+
+.file-inventory .file-inventory-list li {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8125rem;
+}
+
+.file-inventory .file-inventory-list li:last-child {
+    border-bottom: none;
+}
+
+.file-inventory .file-inventory-list li .file-name {
+    color: #1e40af;
+    font-weight: 500;
+}
+
+.file-inventory .file-inventory-list li .file-meta {
+    color: #6b7280;
+    font-size: 0.75rem;
+}
