@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo \"test\")",
+      "Bash(git add *)",
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(python -m pytest tests/unit/ -x -v)",
+      "Bash(python -m pytest tests/unit/test_shortages_integration.py -x -v)",
+      "Bash(git stash *)",
+      "Bash(python -m pytest tests/unit/test_web_excel_parity.py::test_parity_grupo_row -x -v)",
+      "Bash(python -m pytest tests/unit/ tests/integration/ -v --ignore=tests/performance -k \"not test_parity_grupo_row\")",
+      "Bash(python -m pytest tests/integration/test_pipeline_e2e.py::test_pipeline_with_integration_mocks -x -v -s)",
+      "Bash(python -m pytest tests/integration/test_pipeline_e2e.py::test_pipeline_with_integration_mocks -x -v)",
+      "Bash(python -c ' *)",
+      "Bash(python -m pytest tests/integration/test_pipeline_e2e.py -x -v)",
+      "Bash(python -m pytest tests/unit/ tests/integration/ -v --ignore=tests/performance -k \"not test_parity_grupo_row and not test_parity_validade_curta and not test_parity_full_matrix\")",
+      "Bash(git commit -m ' *)",
+      "Bash(python -m pytest tests/unit/ tests/integration/ --ignore=tests/performance -k \"not test_parity_grupo_row and not test_parity_validade_curta and not test_parity_full_matrix\" -q)",
+      "Bash(python -m pytest tests/unit/test_aggregator.py tests/unit/test_process_session.py -v --tb=short)",
+      "Bash(python -m pytest tests/unit/ -v --tb=short)",
+      "Bash(python -m venv venv)",
+      "Bash(git status *)",
+      "Bash(DJANGO_SETTINGS_MODULE=orders_master_saas.settings.development python manage.py check)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "executeautomation-playwright-server"
+  ]
+}
