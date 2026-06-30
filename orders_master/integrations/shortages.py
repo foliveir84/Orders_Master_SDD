@@ -107,11 +107,11 @@ def merge_shortages(df_sell_out: pd.DataFrame, df_shortages: pd.DataFrame) -> pd
             df_out = df_out.drop(columns=[collision_col])
 
     if "Data prevista para reposição" in df_out.columns:
+        # Subtracção vectorizada (NÃO usar .apply(lambda) com pd.NA — produz dtype object
+        # quando há mix de int e null, o que quebra compute_shortage_proposal .round(0)).
+        # (dpr - Timestamp).dt.days produz float64 com NaN para entradas NaT.
         dpr = pd.to_datetime(df_out["Data prevista para reposição"], errors="coerce")
-        today = datetime.now().date()
-        df_out[Columns.TIME_DELTA] = (dpr.dt.date - today).apply(
-            lambda x: x.days if pd.notnull(x) else pd.NA
-        )
+        df_out[Columns.TIME_DELTA] = (dpr - pd.Timestamp(datetime.now().date())).dt.days
     else:
         df_out[Columns.TIME_DELTA] = pd.NA
 

@@ -162,3 +162,113 @@ def test_merge_shortages_preserves_timedelta_when_preinitialized():
     assert df_out.loc[df_out["CÓDIGO"] == 456, "TimeDelta"].iloc[0] == 31
     # Produto sem match deve ter TimeDelta NaN
     assert pd.isna(df_out.loc[df_out["CÓDIGO"] == 999, "TimeDelta"].iloc[0])
+
+
+def test_merge_shortages_timedelta_numeric_dtype_with_mixed_nulls():
+    """TimeDelta deve ter dtype numérico (não object) quando há mix de matches e não-matches.
+
+    Contexto: em produção, df_full tem ~650 produtos mas só alguns têm match na BD
+    Esgotados. O meu fix inicial usava `.apply(lambda x: x.days if pd.notnull(x) else pd.NA)`
+    que produz dtype OBJECT quando há mistura de int e pd.NA. Isto fazia o
+    `compute_shortage_proposal` falhar com `TypeError: Expected numeric dtype, got object
+    instead` no `.round(0)`, derrubando a app em produção.
+
+    Sintoma real (streamlit app 2026-06-30):
+      TypeError: Expected numeric dtype, got object instead.
+        em compute_shortage_proposal:71 (.round(0))
+
+    Causa: o dtype object não suporta operações vectorizadas numéricas (.round, astype int).
+    Contramedida: usar subtracção vectorizada (dpr - pd.Timestamp(today)).dt.days que
+    produz float64 com NaN, em vez de .apply(lambda) com pd.NA.
+    """
+    today = datetime.now()
+    dpr_1 = today + timedelta(days=60)
+    dpr_2 = today + timedelta(days=30)
+
+    # df_sell_out com 3 produtos (2 com match, 1 sem match -> gera null)
+    df_sell_out = pd.DataFrame(
+        {
+            "CÓDIGO": [1001, 1002, 1003],
+            "STOCK": [5, 3, 8],
+            "DIR": [pd.NA, pd.NA, pd.NA],
+            "DPR": [pd.NA, pd.NA, pd.NA],
+            "TimeDelta": [pd.NA, pd.NA, pd.NA],
+        }
+    )
+
+    df_shortages = pd.DataFrame(
+        {
+            "Número de registo": ["1001", "1002"],
+            "Data de início de rutura": [today - timedelta(days=10), today - timedelta(days=5)],
+            "Data prevista para reposição": [dpr_1, dpr_2],
+            "TimeDelta": [60, 30],  # valor original (descartado e recalculado)
+            "Data da Consulta": ["2026-06-30", "2026-06-30"],
+        }
+    )
+
+    df_out = merge_shortages(df_sell_out, df_shortages)
+
+    assert "TimeDelta" in df_out.columns
+    td_series = df_out["TimeDelta"]
+    # dtype deve ser numérico (float64 ou Int64), NUNCA object.
+    # Object dtype quebra compute_shortage_proposal (.round(0) falha).
+    assert td_series.dtype != object, (
+        f"TimeDelta tem dtype object (depreciado)! "
+        f"Isto causa TypeError em compute_shortage_proposal. "
+        f"Usar subtracção vectorizada em vez de .apply(lambda) com pd.NA. "
+        f"Valores: {td_series.tolist()}"
+    )
+    # Valores correctos
+    assert df_out.loc[df_out["CÓDIGO"] == 1001, "TimeDelta"].iloc[0] == 60
+    assert df_out.loc[df_out["CÓDIGO"] == 1002, "TimeDelta"].iloc[0] == 30
+    assert pd.isna(df_out.loc[df_out["CÓDIGO"] == 1003, "TimeDelta"].iloc[0])
+
+
+def test_merge_shortages_then_compute_shortage_proposal_multi_row():
+    """Teste e2e: merge_shortages -> compute_shortage_proposal com multi-linha.
+
+    Reproduz o crash de producao: quando TimeDelta tem dtype object (mix de int e NA),
+    compute_shortage_proposal falha com TypeError no .round(0). Este teste garante que
+    o pipeline completo funciona com datasets que têm produtos com E sem ruptura.
+    """
+    from orders_master.business_logic.proposals import compute_shortage_proposal
+
+    today = datetime.now()
+    dpr_1 = today + timedelta(days=60)
+
+    # 3 produtos: 1 com ruptura, 2 sem
+    df_sell_out = pd.DataFrame(
+        {
+            "CÓDIGO": [1001, 1002, 1003],
+            "STOCK": [5, 3, 8],
+            "Media": [10.0, 20.0, 15.0],
+            "Proposta": [5, 17, 7],  # proposta base pré-calculada
+            "DIR": [pd.NA, pd.NA, pd.NA],
+            "DPR": [pd.NA, pd.NA, pd.NA],
+            "TimeDelta": [pd.NA, pd.NA, pd.NA],
+        }
+    )
+
+    df_shortages = pd.DataFrame(
+        {
+            "Número de registo": ["1001"],
+            "Data de início de rutura": [today - timedelta(days=10)],
+            "Data prevista para reposição": [dpr_1],
+            "TimeDelta": [60],  # descartado e recalculado
+            "Data da Consulta": ["2026-06-30"],
+        }
+    )
+
+    df_merged = merge_shortages(df_sell_out, df_shortages)
+
+    # Este era o ponto de crash em produção
+    df_result = compute_shortage_proposal(df_merged)
+
+    # Produto 1001 (com ruptura): Proposta = round((10/30)*60 - 5) = round(15) = 15
+    assert df_result.loc[df_result["CÓDIGO"] == 1001, "Proposta"].iloc[0] == 15, (
+        f"Proposta de ruptura errada: "
+        f"{df_result.loc[df_result['CÓDIGO'] == 1001, 'Proposta'].iloc[0]}"
+    )
+    # Produtos sem ruptura: proposta base mantida
+    assert df_result.loc[df_result["CÓDIGO"] == 1002, "Proposta"].iloc[0] == 17
+    assert df_result.loc[df_result["CÓDIGO"] == 1003, "Proposta"].iloc[0] == 7
