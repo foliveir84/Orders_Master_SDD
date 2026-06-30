@@ -252,7 +252,7 @@ Executado a **cada interacção** do utilizador com os controlos (slider, toggle
    - Proposta rutura: quando `TimeDelta` está presente (produto em rutura), sobrescreve com `round((Media / 30) × TimeDelta − STOCK)`.
 
 4. **Integrações** (`integrations/`):
-   - Esgotados: left join por `CÓDIGO`, injecta `DIR`, `DPR`, `TimeDelta`. TimeDelta é recalculado dinamicamente contra `datetime.now()`. Falha graciosamente (DataFrame vazio com schema preservado).
+   - Esgotados: left join por `CÓDIGO`, injecta `DIR`, `DPR`, `TimeDelta`. `TimeDelta` é recalculado dinamicamente contra `datetime.now()` tanto em `fetch_shortages_db` como em `merge_shortages` (após o merge, a partir de "Data prevista para reposição" — ver §5.11). Falha graciosamente (DataFrame vazio com schema preservado).
    - Não Comprar: merge dual-mode. Detalhada: por `(CÓDIGO, LOCALIZACAO)`. Agrupada: deduplica por CNP, merge por `CÓDIGO`. Injecta `DATA_OBS`.
 
 ### Destinos de dados
@@ -342,6 +342,65 @@ O módulo `price_validation.py` marca linhas com preços inválidos (`P.CUSTO �
 - **Excluídas** do cálculo de médias de preço na agregação (médias de PVP/P.CUSTO usam apenas linhas com `price_anomaly == False`).
 - **Sinalizadas visualmente** com texto vermelho e prefixo ⚠️ na coluna PVP.
 - Se todos os preços de um grupo forem anómalos, o sistema usa o primeiro preço disponível como fallback.
+
+### 5.11 ⚠️ ALERTA — Colisão de Nomes no `merge_shortages` (Bug Crítico corrigido)
+
+> **Estado:** Corrigido em 2026-06-30. Esta secção documenta o bug, a causa raiz e a contramedida aplicada, e permanece como alerta permanente para que a regressão não volte a ocorrer.
+
+#### O que estava a acontecer
+
+A fórmula de proposta de rutura (PRD §5.4.4 — `Proposta = round((Media/30) × TimeDelta − STOCK)`) **nunca era aplicada** a nenhum produto. Todos os produtos em ruptura recebiam a proposta base (`Media × meses − STOCK`), causando **sub-encomenda sistemática** de produtos em rutura. No produto 5678321, por exemplo, o sistema devolvia `Proposta = 1` em vez do valor correcto `Proposta = 4`.
+
+#### Causa raiz
+
+O pipeline `process_orders_session` (`session_service.py:62-64`) **pré-inicializa** as colunas de integração com `pd.NA` antes do merge, para garantir que a formatação visual não quebra por falta de colunas:
+
+```python
+for col in [Columns.DIR, Columns.DPR, Columns.DATA_OBS, Columns.TIME_DELTA]:
+    if col not in df_full.columns:
+        df_full[col] = pd.NA
+```
+
+Quando `merge_shortages` (`shortages.py:84`) executa o left join com `df_shortages` (que também tem `TimeDelta`), o pandas detecta a **colisão de nomes** e cria as colunas `TimeDelta_x` e `TimeDelta_y` em vez de `TimeDelta`. O filtro final (`final_cols`) selecciona apenas colunas com os nomes originais — `TimeDelta` deixa de existir no resultado.
+
+Como `compute_shortage_proposal` (`proposals.py:57`) faz `if Columns.TIME_DELTA not in df_out.columns: return df_out`, a função retorna cedo e a fórmula de rutura **nunca é executada**. A coluna `DIR` e `DPR` sobrevivem porque são recriadas explicitamente após o merge a partir de "Data de início de rutura" / "Data prevista para reposição"; o `TimeDelta` era a única coluna que dependia de passar intacta pelo merge.
+
+#### Contramedida aplicada (Opção C — reconstrução robusta)
+
+A função `merge_shortages` agora **recalcula `TimeDelta` directamente a partir da fonte original** ("Data prevista para reposição") após o merge, usando a mesma fórmula que `fetch_shortages_db`:
+
+```python
+for collision_col in ("TimeDelta_x", "TimeDelta_y"):
+    if collision_col in df_out.columns:
+        df_out = df_out.drop(columns=[collision_col])
+
+if "Data prevista para reposição" in df_out.columns:
+    dpr = pd.to_datetime(df_out["Data prevista para reposição"], errors="coerce")
+    today = datetime.now().date()
+    df_out[Columns.TIME_DELTA] = (dpr.dt.date - today).apply(
+        lambda x: x.days if pd.notnull(x) else pd.NA
+    )
+else:
+    df_out[Columns.TIME_DELTA] = pd.NA
+```
+
+Esta abordagem é mais robusta do que depender de sufixos `_x`/`_y` porque:
+
+1. **Independência de colisões** — funciona quer `df_sell_out` tenha `TimeDelta` pré-inicializada, quer não.
+2. **Consistência** — usa exactamente a mesma fórmula de `fetch_shortages_db`, garantindo que o valor é sempre o mesmo independentemente do ponto do pipeline.
+3. **Actualização dinâmica** — o `TimeDelta` reflecte sempre `datetime.now()`, mesmo que o cache do `fetch_shortages_db` (TTL=3600s) esteja stale.
+
+#### Regra de manutenção (NÃO QUEBRAR)
+
+> ⚠️ **Qualquer coluna injectada por uma integração externa (shortages, donotbuy) NUNCA deve depender de passar intacta por um `pd.merge()` com um DataFrame que já tenha uma coluna com o mesmo nome.**
+>
+> O pandas cria sufixos `_x`/`_y` automaticamente em colisões, e qualquer filtro posterior por nome original falha silenciosamente. A regra é: **todas as colunas de integração devem ser reconstruídas explicitamente após o merge a partir das colunas fonte originais** (como já acontecia com `DIR`/`DPR`, e agora também com `TimeDelta`).
+>
+> Se uma nova integração for adicionada que injecte colunas com nomes potencialmente colidentes, aplicar o mesmo padrão: drop dos sufixos `_x`/`_y` e reconstrução a partir da fonte.
+
+#### Teste de regressão
+
+O teste `test_merge_shortages_preserves_timedelta_when_preinitialized` em `tests/unit/test_shortages_integration.py` garante que o bug não regressa. O teste simula explicitamente o cenário de `session_service.py:62-64` (pré-inicialização com `pd.NA`) e verifica que o `TimeDelta` real de `df_shortages` chega íntegro ao resultado.
 
 ---
 

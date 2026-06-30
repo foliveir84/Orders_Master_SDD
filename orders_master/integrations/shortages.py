@@ -96,6 +96,25 @@ def merge_shortages(df_sell_out: pd.DataFrame, df_shortages: pd.DataFrame) -> pd
     else:
         df_out[Columns.DPR] = pd.NA
 
+    # Reconstruir TimeDelta após merge (Opção C — mais robusta).
+    # O merge do pandas pode causar colisão de nomes (TimeDelta_x / TimeDelta_y) quando
+    # df_sell_out já tem TimeDelta pré-inicializado (caso do session_service.py:62-64).
+    # Em vez de depender de sufixos, recalculamos TimeDelta directamente a partir da
+    # fonte original "Data prevista para reposição" — exactamente como fetch_shortages_db
+    # faz. Isto garante consistência e independe de colisões de merge.
+    for collision_col in ("TimeDelta_x", "TimeDelta_y"):
+        if collision_col in df_out.columns:
+            df_out = df_out.drop(columns=[collision_col])
+
+    if "Data prevista para reposição" in df_out.columns:
+        dpr = pd.to_datetime(df_out["Data prevista para reposição"], errors="coerce")
+        today = datetime.now().date()
+        df_out[Columns.TIME_DELTA] = (dpr.dt.date - today).apply(
+            lambda x: x.days if pd.notnull(x) else pd.NA
+        )
+    else:
+        df_out[Columns.TIME_DELTA] = pd.NA
+
     # Manter apenas as colunas originais do sell_out + as 3 da integração necessárias
     # Isto remove automaticamente colunas extra como "Motivo", "Medida de Mitigação", etc.
     cols_base_sellout = list(df_sell_out.columns)

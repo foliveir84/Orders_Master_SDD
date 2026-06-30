@@ -5,6 +5,7 @@ Valida o fluxo end-to-end: Ingestão -> Integração -> Agregação -> Recálcul
 """
 
 import io
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pandas as pd
@@ -94,12 +95,16 @@ def test_pipeline_with_integration_mocks(mock_infoprex_content) -> None:
     file1 = io.BytesIO(mock_infoprex_content)
     file1.name = "f1.txt"
 
+    today = datetime.now()
+    dpr = today + timedelta(days=30)
+
+    # Mock df_shortages com schema real (colunas originais da Google Sheet)
     df_shortages = pd.DataFrame(
         {
             "Número de registo": ["2234567"],
-            Columns.TIME_DELTA: [30],
-            "DIR": ["2024-05-01"],
-            "DPR": ["2024-06-01"],
+            "Data de início de rutura": [today - timedelta(days=10)],
+            "Data prevista para reposição": [dpr],
+            "TimeDelta": [30],  # valor original (descartado e recalculado por merge_shortages)
             "Data da Consulta": ["2024-05-15"],
         }
     )
@@ -143,4 +148,6 @@ def test_pipeline_with_integration_mocks(mock_infoprex_content) -> None:
     assert Columns.DATA_OBS in state.df_raw.columns
     assert Columns.DIR in state.df_raw.columns
     assert state.df_raw[Columns.DATA_OBS].iloc[0] == "10-05-2024"
+    # TimeDelta é recalculado por merge_shortages a partir de DPR (Opção C)
+    assert Columns.TIME_DELTA in state.df_raw.columns
     assert state.df_raw[Columns.TIME_DELTA].iloc[0] == 30

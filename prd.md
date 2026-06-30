@@ -616,6 +616,14 @@ Fonte: Google Sheet pública. Uma linha por produto em rutura conhecida.
 - Produtos sem match → `DIR`, `DPR`, `TimeDelta` ficam `NaN` → fórmula base da proposta (§5.4.2).
 - Produtos com match → fórmula de rutura (§5.4.3).
 
+> ⚠️ **ALERTA DE MANUTENÇÃO — Colisão de nomes no merge (corrigido em 2026-06-30):**
+>
+> O `session_service` pré-inicializa `TimeDelta = pd.NA` em `df_full` antes do merge (prática defensiva para garantir que a formatação visual não quebra). Esta pré-inicialização causava **colisão de nomes** com o `TimeDelta` de `df_shortages` durante o `pd.merge()` — o pandas criava `TimeDelta_x` / `TimeDelta_y` e a coluna `TimeDelta` era **completamente perdida** no resultado. Consequência: a fórmula de rutura (§5.4.4) **nunca era aplicada** a nenhum produto, levando a sub-encomenda sistemática de produtos em ruptura.
+>
+> **Contramedida aplicada:** `merge_shortages` agora reconstrói `TimeDelta` directamente a partir de "Data prevista para reposição" após o merge, usando a mesma fórmula que `fetch_shortages_db`. Ver `docs/architecture.md` §5.11 para detalhes completos e regra de manutenção.
+>
+> **Regra:** Qualquer coluna injectada por integrações externas (shortages, donotbuy, ou futuras) NUNCA deve depender de passar intacta por um `pd.merge()` com um DataFrame que já tenha coluna com o mesmo nome. Reconstruir sempre explicitamente a partir das colunas fonte originais após o merge.
+
 #### §4.1.5 — Entidade: **DoNotBuyRecord** (Produtos a Não Comprar)
 
 Fonte: Google Sheet pública colaborativa. Uma linha por `(CNP, Farmácia)` a evitar.

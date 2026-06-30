@@ -71,14 +71,18 @@ def test_fetch_shortages_db_schema_error(monkeypatch):
 
 
 def test_merge_shortages():
+    today = datetime.now()
+    dpr_1 = today + timedelta(days=30)
+    dpr_2 = today + timedelta(days=31)
+
     df_sell_out = pd.DataFrame({"CÓDIGO": [123, 456, 999], "STOCK": [5, 10, 0]})
 
     df_shortages = pd.DataFrame(
         {
             "Número de registo": ["123", "456"],
             "Data de início de rutura": pd.to_datetime(["2026-05-01", "2026-05-02"]),
-            "Data prevista para reposição": pd.to_datetime(["2026-06-01", "2026-06-02"]),
-            "TimeDelta": [30, 31],
+            "Data prevista para reposição": pd.to_datetime([dpr_1, dpr_2]),
+            "TimeDelta": [30, 31],  # valor original da sheet (descartado e recalculado)
             "Data da Consulta": ["2026-05-06", "2026-05-06"],
             "Nome do medicamento": ["A", "B"],
         }
@@ -90,14 +94,71 @@ def test_merge_shortages():
     assert "DIR" in df_out.columns
     assert "DPR" in df_out.columns
     assert df_out.loc[df_out["CÓDIGO"] == 123, "DIR"].iloc[0] == "01-05-2026"
-    assert df_out.loc[df_out["CÓDIGO"] == 123, "DPR"].iloc[0] == "01-06-2026"
+    assert df_out.loc[df_out["CÓDIGO"] == 123, "DPR"].iloc[0] == dpr_1.strftime("%d-%m-%Y")
 
     # Check if auxiliary columns were dropped
     assert "Data da Consulta" not in df_out.columns
     assert "Nome do medicamento" not in df_out.columns
     assert "Número de registo" not in df_out.columns
 
-    # Check if TimeDelta is preserved
+    # TimeDelta é recalculado dinamicamente a partir de DPR (Opção C)
     assert "TimeDelta" in df_out.columns
     assert df_out.loc[df_out["CÓDIGO"] == 123, "TimeDelta"].iloc[0] == 30
+    assert df_out.loc[df_out["CÓDIGO"] == 456, "TimeDelta"].iloc[0] == 31
+    assert pd.isna(df_out.loc[df_out["CÓDIGO"] == 999, "TimeDelta"].iloc[0])
+
+
+def test_merge_shortages_preserves_timedelta_when_preinitialized():
+    """Reproduz o bug do session_service: TimeDelta=NA pre-inicializado em df_sell_out.
+
+    Contexto: session_service.py:62-64 pre-inicializa TimeDelta=pd.NA em df_full
+    ANTES de chamar merge_shortages. Isto causava colisao de nomes no merge do pandas
+    (TimeDelta_x / TimeDelta_y) e o TimeDelta real de df_shortages era perdido.
+
+    Cenario real: produto 5678321 com DPR=30-10-2026, TimeDelta esperado=122 dias.
+    Sintoma: compute_shortage_proposal retorna early (TimeDelta nao existe) e usa
+    formula base em vez da formula de ruptura.
+
+    Fix: merge_shortages agora recalcula TimeDelta a partir de "Data prevista para
+    reposição" (Opção C), independendo de colisões de merge.
+    """
+    today = datetime.now()
+    dpr_1 = today + timedelta(days=30)
+    dpr_2 = today + timedelta(days=31)
+
+    # df_sell_out COM TimeDelta pre-inicializado (simula session_service.py:62-64)
+    df_sell_out = pd.DataFrame(
+        {
+            "CÓDIGO": [123, 456, 999],
+            "STOCK": [5, 10, 0],
+            "DIR": [pd.NA, pd.NA, pd.NA],
+            "DPR": [pd.NA, pd.NA, pd.NA],
+            "TimeDelta": [pd.NA, pd.NA, pd.NA],
+        }
+    )
+
+    df_shortages = pd.DataFrame(
+        {
+            "Número de registo": ["123", "456"],
+            "Data de início de rutura": pd.to_datetime(["2026-05-01", "2026-05-02"]),
+            "Data prevista para reposição": pd.to_datetime([dpr_1, dpr_2]),
+            "TimeDelta": [30, 31],  # valor original da sheet (descartado e recalculado)
+            "Data da Consulta": ["2026-05-06", "2026-05-06"],
+        }
+    )
+
+    df_out = merge_shortages(df_sell_out, df_shortages)
+
+    # TimeDelta deve estar presente (nao colidido/dropped)
+    assert "TimeDelta" in df_out.columns, (
+        "TimeDelta foi perdido no merge! Colisao de nomes com df_sell_out pre-inicializado. "
+        f"Colunas actuais: {list(df_out.columns)}"
+    )
+    # Valores recalculados a partir de DPR (Opção C)
+    assert df_out.loc[df_out["CÓDIGO"] == 123, "TimeDelta"].iloc[0] == 30, (
+        f"TimeDelta deveria ser 30 (recalculado de DPR), obtido: "
+        f"{df_out.loc[df_out['CÓDIGO'] == 123, 'TimeDelta'].iloc[0]}"
+    )
+    assert df_out.loc[df_out["CÓDIGO"] == 456, "TimeDelta"].iloc[0] == 31
+    # Produto sem match deve ter TimeDelta NaN
     assert pd.isna(df_out.loc[df_out["CÓDIGO"] == 999, "TimeDelta"].iloc[0])

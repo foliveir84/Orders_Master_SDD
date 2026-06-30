@@ -696,6 +696,14 @@ for col in [Columns.DIR, Columns.DPR, Columns.DATA_OBS, Columns.TIME_DELTA]:
 
 **Impacto:** Positivo (robustez), mas diverge do modelo de dados do PRD.
 
+> ⚠️ **ALERTA — Bug crítico introduzido por esta prática (corrigido em 2026-06-30):**
+>
+> A pré-inicialização de `TimeDelta = pd.NA` em `df_full` **causava colisão de nomes** com o `TimeDelta` de `df_shortages` durante o `pd.merge()` em `merge_shortages`. O pandas criava `TimeDelta_x` / `TimeDelta_y` e o filtro final por nome original descartava ambas — a coluna `TimeDelta` **era completamente perdida** no resultado. Como `compute_shortage_proposal` retorna cedo quando `TimeDelta` não existe, a **fórmula de rutura (PRD §5.4.4) nunca era aplicada** a nenhum produto, levando a sub-encomenda sistemática de produtos em ruptura.
+>
+> **Contramedida aplicada:** `merge_shortages` agora reconstrói `TimeDelta` directamente a partir de "Data prevista para reposição" após o merge (Opção C), independendo de colisões de nomes. Ver detalhes em `docs/architecture.md` §5.11.
+>
+> **Regra de manutenção:** Qualquer coluna injectada por integrações externas NUNCA deve depender de passar intacta por um `pd.merge()` com um DataFrame que já tenha coluna com o mesmo nome. Reconstruir sempre explicitamente a partir das colunas fonte originais após o merge.
+
 ---
 
 ## 28. Lazy Merge — codigos_visible Ignorado no session_service
