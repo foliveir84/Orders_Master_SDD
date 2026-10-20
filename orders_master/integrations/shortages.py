@@ -52,10 +52,15 @@ def fetch_shortages_db(url: str, codigos_visible: set[int] | None = None) -> pd.
         return empty_df
 
     # Recalcula TimeDelta = (Data_Prevista_Reposição - datetime.now().date()).days
+    # A folha publicada do Infarmed guarda as datas como strings "dd-mm-yyyy" (formato PT).
+    # sem format explícito, pd.to_datetime interpreta-as como "mm-dd-yyyy" e troca dia/mês
+    # (04-12-2026 -> 12 Abr), e dias > 12 tornam-se NaT. Mesmo padrão de donotbuy.py/infoprex.py.
     df["Data prevista para reposição"] = pd.to_datetime(
-        df["Data prevista para reposição"], errors="coerce"
+        df["Data prevista para reposição"], format="%d-%m-%Y", errors="coerce"
     )
-    df["Data de início de rutura"] = pd.to_datetime(df["Data de início de rutura"], errors="coerce")
+    df["Data de início de rutura"] = pd.to_datetime(
+        df["Data de início de rutura"], format="%d-%m-%Y", errors="coerce"
+    )
 
     today = datetime.now().date()
     df[Columns.TIME_DELTA] = (df["Data prevista para reposição"].dt.date - today).apply(

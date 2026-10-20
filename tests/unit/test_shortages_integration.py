@@ -70,6 +70,48 @@ def test_fetch_shortages_db_schema_error(monkeypatch):
     assert "TimeDelta" in df.columns
 
 
+def test_fetch_shortages_db_parses_dd_mm_yyyy_strings(monkeypatch):
+    """Reproduz o bug do produto 5069224.
+
+    A folha publicada do Infarmed guarda as datas como strings 'dd-mm-yyyy'
+    (formato PT). Sem format="%d-%m-%Y", pd.to_datetime interpreta-as como
+    'mm-dd-yyyy' e troca dia/mes (04-12-2026 -> 12-04-2026). Datas com dia > 12
+    (ex: 19-10-2027) tornavam-se NaT, perdendo o TimeDelta e desactivando a
+    formula de ruptura.
+    """
+    mock_df = pd.DataFrame(
+        {
+            "Número de registo": ["5069224", "5069225"],
+            "Data de início de rutura": ["04-12-2026", "19-10-2026"],
+            "Data prevista para reposição": ["02-02-2027", "19-10-2027"],
+            "Data da Consulta": ["19-10-2026", "19-10-2026"],
+        }
+    )
+    monkeypatch.setattr("pandas.read_excel", lambda *args, **kwargs: mock_df)
+
+    df = fetch_shortages_db("http://mock-url-ddmm")
+
+    # 04-12-2026 = 4 de Dezembro (e nao 12 de Abril)
+    assert df.loc[df["Número de registo"] == "5069224", "Data de início de rutura"].iloc[0] == (
+        pd.Timestamp("2026-12-04")
+    )
+    assert df.loc[df["Número de registo"] == "5069224", "Data prevista para reposição"].iloc[0] == (
+        pd.Timestamp("2027-02-02")
+    )
+    # Dia > 12 nao pode virar NaT
+    assert df.loc[df["Número de registo"] == "5069225", "Data de início de rutura"].iloc[0] == (
+        pd.Timestamp("2026-10-19")
+    )
+    # TimeDelta recalculado sobre a DPR correcta
+    hoje = pd.Timestamp(datetime.now().date())
+    assert df.loc[df["Número de registo"] == "5069224", "TimeDelta"].iloc[0] == (
+        (pd.Timestamp("2027-02-02") - hoje).days
+    )
+    assert df.loc[df["Número de registo"] == "5069225", "TimeDelta"].iloc[0] == (
+        (pd.Timestamp("2027-10-19") - hoje).days
+    )
+
+
 def test_merge_shortages():
     today = datetime.now()
     dpr_1 = today + timedelta(days=30)
