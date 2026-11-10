@@ -40,7 +40,7 @@ def parse_infoprex_file(
 
     base_cols = ["CPR", "NOM", "LOCALIZACAO", "SAC", "PVP", "PCU", "DUC", "DTVAL", "CLA", "DUV"]
     vendas_cols = [f"V{i}" for i in range(15)]
-    colunas_alvo = set(base_cols + vendas_cols)
+    colunas_alvo = set(base_cols + vendas_cols) | {"INATIVO"}
 
     df = try_read_with_fallback_encodings(file_like, sep="\t", usecols=lambda c: c in colunas_alvo)
 
@@ -50,6 +50,9 @@ def parse_infoprex_file(
         raise InfoprexSchemaError(
             f"Colunas estruturais em falta no ficheiro {filename}. Esperado: CPR, DUV"
         )
+
+    if "INATIVO" in df.columns:
+        df = df[df["INATIVO"].astype(str).str.strip().str.upper() == "N"]
 
     vendas_presentes = [c for c in vendas_cols if c in df.columns]
 

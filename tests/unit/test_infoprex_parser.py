@@ -11,18 +11,21 @@ from orders_master.ingestion.infoprex_parser import parse_infoprex_file
 @pytest.fixture
 def infoprex_mini_content():
     header = (
-        "CPR\tNOM\tLOCALIZACAO\tSAC\tPVP\tPCU\tDUC\tDTVAL\tCLA\tDUV\t"
+        "CPR\tNOM\tINATIVO\tLOCALIZACAO\tSAC\tPVP\tPCU\tDUC\tDTVAL\tCLA\tDUV\t"
         + "\t".join([f"V{i}" for i in range(15)])
         + "\n"
     )
     rows = [
-        "1234567\tPROD1\tIlha\t10\t10.5\t8.0\t01/01/2026\t10/2026\tLAB1\t15/05/2026\t"
+        "1234567\tPROD1\tN\tIlha\t10\t10.5\t8.0\t01/01/2026\t10/2026\tLAB1\t15/05/2026\t"
         + "\t".join(["1"] * 15),
-        "1234567\tPROD1\tColmeias\t5\t10.5\t8.0\t01/01/2026\t10/2026\tLAB1\t14/05/2026\t"
+        "1234567\tPROD1\tN\tColmeias\t5\t10.5\t8.0\t01/01/2026\t10/2026\tLAB1\t14/05/2026\t"
         + "\t".join(["0"] * 15),
-        "1000000\tLOCALPROD\tIlha\t0\t5.0\t4.0\t\t\tLAB2\t15/05/2026\t" + "\t".join(["0"] * 15),
-        "ABCDEFG\tINVALID_CODE\tIlha\t1\t1.0\t0.5\t\t\tLAB1\t15/05/2026\t" + "\t".join(["0"] * 15),
-        "7654321\tPROD3\tIlha\t0\t20.0\t15.0\t\t\tLAB3\t15/05/2026\t" + "\t".join(["2"] * 15),
+        "1000000\tLOCALPROD\tN\tIlha\t0\t5.0\t4.0\t\t\tLAB2\t15/05/2026\t" + "\t".join(["0"] * 15),
+        "ABCDEFG\tINVALID_CODE\tN\tIlha\t1\t1.0\t0.5\t\t\tLAB1\t15/05/2026\t"
+        + "\t".join(["0"] * 15),
+        "7654321\tPROD3\tN\tIlha\t0\t20.0\t15.0\t\t\tLAB3\t15/05/2026\t" + "\t".join(["2"] * 15),
+        "1122334\tINATIVO_PROD\tS\tIlha\t0\t3.0\t2.0\t\t\tLAB1\t15/05/2026\t"
+        + "\t".join(["0"] * 15),
     ]
     return header + "\n".join(rows)
 
@@ -107,3 +110,38 @@ def test_infoprex_idempotency(infoprex_mini_content):
     df2, _ = parse_infoprex_file(file_like2, [], [], {})
 
     pd.testing.assert_frame_equal(df1, df2)
+
+
+def test_infoprex_filter_inativo(infoprex_mini_content):
+    file_like = io.BytesIO(infoprex_mini_content.encode("utf-16"))
+    file_like.name = "Guia.txt"
+    df, _ = parse_infoprex_file(file_like, [], [], {})
+
+    # Produto inactivo (INATIVO = "S") é excluído
+    assert 1122334 not in df[Columns.CODIGO].values
+    # A coluna INATIVO é removida e o output mantém as colunas de sempre
+    assert "INATIVO" not in df.columns
+    assert Columns.CODIGO in df.columns
+
+
+def test_infoprex_filter_inativo_precedes_cla(infoprex_mini_content):
+    file_like = io.BytesIO(infoprex_mini_content.encode("utf-16"))
+    file_like.name = "Guia.txt"
+    df, _ = parse_infoprex_file(file_like, ["LAB1"], [], {})
+
+    # 1122334 é inactivo e com CLA LAB1 — o filtro INATIVO corre antes de CLA
+    assert 1122334 not in df[Columns.CODIGO].values
+    assert set(df[Columns.CODIGO].values) == {1234567}
+
+
+def test_infoprex_missing_inativo_column():
+    content = (
+        "CPR\tNOM\tLOCALIZACAO\tSAC\tPVP\tPCU\tDUC\tDTVAL\tCLA\tDUV\n"
+        "1234567\tPROD1\tIlha\t10\t10.5\t8.0\t\t\tLAB1\t15/05/2026\n"
+        "7654321\tPROD3\tIlha\t0\t20.0\t15.0\t\t\tLAB3\t15/05/2026\n"
+    )
+    file_like = io.BytesIO(content.encode("utf-16"))
+    file_like.name = "Guia.txt"
+    df, _ = parse_infoprex_file(file_like, [], [], {})
+
+    assert len(df) == 2
